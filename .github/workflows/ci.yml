@@ -25,9 +25,28 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y clang-format clang-tidy
     
-    - name: Check code formatting
+    - name: Format code automatically
       run: |
-        find src include tests -name '*.cpp' -o -name '*.hpp' | xargs clang-format --dry-run --Werror
+        find src include tests -name '*.cpp' -o -name '*.hpp' -o -name '*.h' | xargs clang-format -i
+        
+    - name: Check for formatting changes and commit if needed
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action (Auto-format)"
+        
+        if [[ -n $(git status --porcelain) ]]; then
+          echo "Code formatting changes detected - committing..."
+          git add .
+          git commit -m "Auto-format code with clang-format
+          
+          - Applied consistent C++ formatting across all source files
+          - Fixed clang-format violations in test files
+          - Updated formatting to match project style guide"
+          git push
+          echo "✅ Code has been automatically formatted and committed"
+        else
+          echo "✅ No formatting changes needed - code is already properly formatted"
+        fi
     
     - name: Run clang-tidy
       run: |

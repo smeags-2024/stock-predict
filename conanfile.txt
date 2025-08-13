@@ -1,5 +1,7 @@
 [requires]
-# Start with basic dependencies to test functionality
+# Core dependencies for basic functionality
+eigen/3.4.0
+nlohmann_json/3.11.2
 spdlog/1.12.0
 gtest/1.14.0
 

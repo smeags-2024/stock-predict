@@ -110,15 +110,20 @@ jobs:
     needs: code-quality
     strategy:
       matrix:
-        # Simplified matrix for debugging - focus on core combinations
-        os: [ubuntu-latest]
-        compiler: [gcc-13, clang-14]
+        # Multi-platform build matrix: Linux, macOS (Windows later)
+        os: [ubuntu-latest, macos-latest]
         build_type: [Release, Debug]
-        exclude:
-          # Keep it minimal during debugging phase
+        include:
+          # Linux with GCC
           - os: ubuntu-latest
-            compiler: clang-14
-            build_type: Debug
+            compiler: gcc
+            cc: gcc
+            cxx: g++
+          # macOS with Clang  
+          - os: macos-latest
+            compiler: clang
+            cc: clang
+            cxx: clang++
     
     runs-on: ${{ matrix.os }}
     
@@ -134,7 +139,8 @@ jobs:
           conan-${{ matrix.os }}-${{ matrix.compiler }}-
           conan-${{ matrix.os }}-
     
-    - name: Install system dependencies
+    - name: Install system dependencies (Linux)
+      if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -142,36 +148,17 @@ jobs:
           cmake \
           ninja-build \
           pkg-config \
-          libssl-dev \
-          libblas-dev \
-          liblapack-dev \
-          libeigen3-dev \
-          libhdf5-dev \
-          libomp-dev \
-          xvfb \
-          libxkbcommon-x11-0 \
-          libxcb-icccm4 \
-          libxcb-image0 \
-          libxcb-keysyms1 \
-          libxcb-randr0 \
-          libxcb-render-util0 \
-          libxcb-xinerama0 \
-          libxcb-xfixes0 \
-          x11-utils
+          libssl-dev
     
-    - name: Setup compiler
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
       run: |
-        if [[ "${{ matrix.compiler }}" == gcc-* ]]; then
-          version=${COMPILER#gcc-}
-          sudo apt-get install -y gcc-$version g++-$version
-          echo "CC=gcc-$version" >> $GITHUB_ENV
-          echo "CXX=g++-$version" >> $GITHUB_ENV
-        elif [[ "${{ matrix.compiler }}" == clang-* ]]; then
-          version=${COMPILER#clang-}
-          sudo apt-get install -y clang-$version
-          echo "CC=clang-$version" >> $GITHUB_ENV
-          echo "CXX=clang++-$version" >> $GITHUB_ENV
-        fi
+        brew install cmake ninja pkg-config openssl
+    
+    - name: Setup compiler environment
+      run: |
+        echo "CC=${{ matrix.cc }}" >> $GITHUB_ENV
+        echo "CXX=${{ matrix.cxx }}" >> $GITHUB_ENV
       env:
         COMPILER: ${{ matrix.compiler }}
     
@@ -182,32 +169,40 @@ jobs:
     
     - name: Install Conan
       run: |
-        pip install "conan>=2.0"
-        conan profile detect --force
+        pip install conan==1.62.0
+    
+    - name: Setup Conan profile
+      run: |
+        conan profile new default --detect --force
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+          conan profile update settings.compiler.libcxx=libstdc++11 default
+        elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          conan profile update settings.compiler.libcxx=libc++ default
+        fi
+        conan profile show default
     
     - name: Install dependencies with Conan
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s os=Linux -s arch=x86_64 -s compiler=gcc -s compiler.version=13 -s compiler.libcxx=libstdc++11 -s compiler.cppstd=20 -s build_type=${{ matrix.build_type }}
+        conan install .. --build=missing -s build_type=${{ matrix.build_type }}
     
     - name: Configure CMake
       run: |
         cd build
         cmake .. \
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-          -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake \
           -G Ninja
     
     - name: Build
       run: |
         cd build
-        ninja -j$(nproc)
+        ninja -j$(if [[ "${{ runner.os }}" == "macOS" ]]; then sysctl -n hw.ncpu; else nproc; fi)
     
     - name: Run unit tests
       run: |
         cd build
-        ctest --output-on-failure --parallel $(nproc)
+        ctest --output-on-failure --parallel $(if [[ "${{ runner.os }}" == "macOS" ]]; then sysctl -n hw.ncpu; else nproc; fi)
     
     - name: Test GUI components (Linux only)
       if: matrix.os == 'ubuntu-latest'
@@ -230,7 +225,7 @@ jobs:
     
     - name: Upload benchmark results
       if: matrix.build_type == 'Release' && matrix.compiler == 'gcc-11'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: benchmark-results-${{ matrix.os }}
         path: build/benchmark_results.json

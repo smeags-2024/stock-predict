@@ -12,12 +12,16 @@ find_package(PkgConfig REQUIRED)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake OPTIONAL)
 if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
     conan_basic_setup(TARGETS)
+    # Use Conan targets directly
+    set(EIGEN3_FOUND TRUE)
+    set(nlohmann_json_FOUND TRUE) 
+    set(spdlog_FOUND TRUE)
+else()
+    # Fallback to system packages if Conan not available
+    find_package(Eigen3 REQUIRED)
+    find_package(nlohmann_json REQUIRED)
+    find_package(spdlog REQUIRED)
 endif()
-
-# Core required packages (minimal set for testing)
-find_package(Eigen3 REQUIRED)
-find_package(nlohmann_json REQUIRED)
-find_package(spdlog REQUIRED)
 # find_package(fmt REQUIRED)  # Temporarily disabled for testing
 
 # Optional advanced packages (complex dependencies)

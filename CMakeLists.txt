@@ -28,10 +28,8 @@ else()
     find_package(Eigen3 REQUIRED)
     find_package(nlohmann_json REQUIRED)
     find_package(spdlog REQUIRED)
+    find_package(GTest REQUIRED)
 endif()
-
-# Always use system GTest (faster than building from source in CI)
-find_package(GTest REQUIRED)
 # find_package(fmt REQUIRED)  # Temporarily disabled for testing
 
 # Optional advanced packages (complex dependencies)

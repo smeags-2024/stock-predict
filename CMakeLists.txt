@@ -226,17 +226,6 @@ endif()
 add_executable(${PROJECT_NAME} src/main.cpp)
 target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib)
 
-# Simple demo executable (always builds)
-add_executable(${PROJECT_NAME}_simple src/simple_main.cpp)
-target_include_directories(${PROJECT_NAME}_simple PRIVATE include)
-# Only link basic libraries for simple demo
-if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-    # Just use nlohmann_json for JSON parsing if available
-    target_link_libraries(${PROJECT_NAME}_simple PRIVATE CONAN_PKG::nlohmann_json)
-else()
-    # No dependencies needed for simple demo
-endif()
-
 # GUI executable (only if Qt6 is available)
 if(Qt6_FOUND)
     add_executable(${PROJECT_NAME}_gui_app src/gui/gui_main.cpp)

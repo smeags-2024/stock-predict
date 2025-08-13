@@ -290,5 +290,5 @@ install(FILES
 
 # Documentation build (uses docs/CMakeLists.txt)
 if(BUILD_DOCS)
-    add_subdirectory(docs)
+    add_subdirectory(docs ${CMAKE_BINARY_DIR}/documentation)
 endif()

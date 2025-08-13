@@ -55,15 +55,17 @@ class EnsemblePredictor : public IStockPredictor {
  */
 class SimplePredictor : public stock_predict::IStockPredictor {
    public:
-    explicit SimplePredictor(const std::string& symbol, const stock_predict::PredictorConfig& config = {});
+    explicit SimplePredictor(const std::string& symbol,
+                             const stock_predict::PredictorConfig& config = {});
     ~SimplePredictor() override = default;
 
     // IStockPredictor interface
     bool load_model(const std::string& model_path) override;
     bool train(const std::vector<stock_predict::MarketData>& data, int epochs = 100) override;
-    stock_predict::PredictionResult predict_next_day(const std::vector<stock_predict::MarketData>& recent_data) override;
-    std::vector<stock_predict::PredictionResult> predict_multi_day(const std::vector<stock_predict::MarketData>& recent_data,
-                                                    int days) override;
+    stock_predict::PredictionResult predict_next_day(
+        const std::vector<stock_predict::MarketData>& recent_data) override;
+    std::vector<stock_predict::PredictionResult> predict_multi_day(
+        const std::vector<stock_predict::MarketData>& recent_data, int days) override;
     std::vector<std::pair<std::string, double>> get_performance_metrics() const override;
     bool save_model(const std::string& model_path) const override;
 

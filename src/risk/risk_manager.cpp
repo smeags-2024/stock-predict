@@ -221,10 +221,9 @@ double RiskManager::covariance(const std::vector<double>& x, const std::vector<d
 }
 
 // Portfolio Optimizer Implementation
-PortfolioOptimizer::Portfolio PortfolioOptimizer::optimize_portfolio(const std::vector<std::vector<double>>& returns,
-                                                 const std::vector<std::string>& asset_names,
-                                                 double risk_free_rate,
-                                                 std::optional<double> target_return) {
+PortfolioOptimizer::Portfolio PortfolioOptimizer::optimize_portfolio(
+    const std::vector<std::vector<double>>& returns, const std::vector<std::string>& asset_names,
+    double risk_free_rate, std::optional<double> target_return) {
     PortfolioOptimizer::Portfolio portfolio;
     portfolio.assets = asset_names;
 

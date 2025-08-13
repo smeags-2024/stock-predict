@@ -1,13 +1,80 @@
 #pragma once
 
-#include <torch/torch.h>
+// #include <torch/torch.h>  // Comment out PyTorch for now
 #include <memory>
 #include "stock_predictor.hpp"
 
 namespace stock_predict {
 
 /**
- * @brief LSTM-based stock price predictor using PyTorch C++
+ * @brief Transformer-based predictor (placeholder)
+ */
+class TransformerPredictor : public IStockPredictor {
+public:
+    explicit TransformerPredictor(const std::string& symbol, const PredictorConfig& config = {});
+    ~TransformerPredictor() override = default;
+
+    bool load_model(const std::string& model_path) override;
+    bool train(const std::vector<MarketData>& data, int epochs = 100) override;
+    PredictionResult predict_next_day(const std::vector<MarketData>& recent_data) override;
+    std::vector<PredictionResult> predict_multi_day(const std::vector<MarketData>& recent_data, int days) override;
+    std::vector<std::pair<std::string, double>> get_performance_metrics() const override;
+    bool save_model(const std::string& model_path) const override;
+
+private:
+    std::string symbol_;
+    PredictorConfig config_;
+};
+
+/**
+ * @brief Ensemble predictor (placeholder)
+ */
+class EnsemblePredictor : public IStockPredictor {
+public:
+    explicit EnsemblePredictor(const std::string& symbol, const PredictorConfig& config = {});
+    ~EnsemblePredictor() override = default;
+
+    bool load_model(const std::string& model_path) override;
+    bool train(const std::vector<MarketData>& data, int epochs = 100) override;
+    PredictionResult predict_next_day(const std::vector<MarketData>& recent_data) override;
+    std::vector<PredictionResult> predict_multi_day(const std::vector<MarketData>& recent_data, int days) override;
+    std::vector<std::pair<std::string, double>> get_performance_metrics() const override;
+    bool save_model(const std::string& model_path) const override;
+
+private:
+    std::string symbol_;
+    PredictorConfig config_;
+};
+
+} // namespace stock_predict**
+ * @brief Simple mathematical predictor (fallback when PyTorch unavailable)
+ */
+class SimplePredictor : public IStockPredictor {
+   public:
+    explicit SimplePredictor(const std::string& symbol, const PredictorConfig& config = {});
+    ~SimplePredictor() override = default;
+
+    // IStockPredictor interface
+    bool load_model(const std::string& model_path) override;
+    bool train(const std::vector<MarketData>& data, int epochs = 100) override;
+    PredictionResult predict_next_day(const std::vector<MarketData>& recent_data) override;
+    std::vector<PredictionResult> predict_multi_day(const std::vector<MarketData>& recent_data,
+                                                    int days) override;
+    std::vector<std::pair<std::string, double>> get_performance_metrics() const override;
+    bool save_model(const std::string& model_path) const override;
+
+   private:
+    std::string symbol_;
+    PredictorConfig config_;
+    std::vector<double> weights_;
+    double bias_;
+    bool trained_;
+    std::vector<std::pair<std::string, double>> metrics_;
+};
+
+/**
+ * @brief LSTM-based stock price predictor (requires PyTorch)
+ * Note: Currently disabled - requires PyTorch C++ installation
  */
 class LSTMPredictor : public IStockPredictor {
    public:
@@ -24,30 +91,11 @@ class LSTMPredictor : public IStockPredictor {
     bool save_model(const std::string& model_path) const override;
 
    private:
-    struct LSTMNetImpl : torch::nn::Module {
-        LSTMNetImpl(int input_size, int hidden_size, int num_layers, int output_size);
-        torch::Tensor forward(torch::Tensor x);
-
-        torch::nn::LSTM lstm{nullptr};
-        torch::nn::Linear fc1{nullptr};
-        torch::nn::Dropout dropout{nullptr};
-        torch::nn::Linear fc2{nullptr};
-    };
-    TORCH_MODULE(LSTMNet);
-
-    // Configuration and state
     std::string symbol_;
     PredictorConfig config_;
-    torch::Device device_;
-    LSTMNet model_;
-    torch::optim::Adam optimizer_{nullptr};
-
-    // Data preprocessing
-    torch::Tensor scaler_mean_;
-    torch::Tensor scaler_std_;
-
-    // Performance tracking
-    mutable std::vector<std::pair<std::string, double>> metrics_;
+    // PyTorch components would go here when available
+    bool trained_;
+};
 
     // Helper methods
     torch::Tensor preprocess_data(const std::vector<MarketData>& data);

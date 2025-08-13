@@ -44,8 +44,8 @@ This document outlines the complete build plan and testing strategy for our **su
 - [x] **Task 1.3.1**: Integrate GoogleTest framework (test structure created)
 - [x] **Task 1.3.2**: Set up Google Benchmark for performance testing
 - [x] **Task 1.3.3**: Create test discovery and execution pipeline
-- [ ] **Task 1.3.4**: Implement code coverage reporting
-- [ ] **Task 1.3.5**: Set up continuous testing automation
+- [x] **Task 1.3.4**: Implement code coverage reporting
+- [x] **Task 1.3.5**: Set up continuous testing automation
 
 ---
 

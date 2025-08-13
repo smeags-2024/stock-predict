@@ -9,6 +9,11 @@ on:
     # Run tests daily at 2 AM UTC
     - cron: '0 2 * * *'
 
+# Add permissions for the workflow to write to the repository
+permissions:
+  contents: write
+  pull-requests: read
+
 env:
   BUILD_TYPE: Release
   CONAN_USER_HOME: "${{ github.workspace }}/conan-cache"
@@ -19,6 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
     
     - name: Install clang-format and clang-tidy
       run: |
@@ -31,8 +39,8 @@ jobs:
         
     - name: Check for formatting changes and commit if needed
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action (Auto-format)"
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
         
         if [[ -n $(git status --porcelain) ]]; then
           echo "Code formatting changes detected - committing..."
@@ -42,7 +50,7 @@ jobs:
           - Applied consistent C++ formatting across all source files
           - Fixed clang-format violations in test files
           - Updated formatting to match project style guide"
-          git push
+          git push origin HEAD:${{ github.ref_name }}
           echo "✅ Code has been automatically formatted and committed"
         else
           echo "✅ No formatting changes needed - code is already properly formatted"

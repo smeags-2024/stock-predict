@@ -1,16 +1,14 @@
 [requires]
-# Use minimal dependencies that have pre-built packages
+# Core dependencies for basic functionality
 eigen/3.4.0
 nlohmann_json/3.11.2
 spdlog/1.12.0
-# Remove gtest from conanfile - install via system packages instead
+gtest/1.14.0
 
 [generators]
 cmake
 cmake_find_package
 
 [options]
-# Use shared libraries when available for faster builds
-spdlog:shared=True
 
 [imports]

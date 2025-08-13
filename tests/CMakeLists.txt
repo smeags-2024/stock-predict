@@ -9,13 +9,23 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # For now, just build minimal test to verify CI setup
 add_executable(run_tests test_minimal.cpp)
 
-# Always use system GTest (faster than building from source in CI)
-target_link_libraries(run_tests
-    PRIVATE
-        GTest::gtest
-        GTest::gtest_main
-        ${PROJECT_NAME}_lib
-)
+# Link libraries - use conditional Conan vs system targets
+if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    # Conan 1.x target names
+    target_link_libraries(run_tests
+        PRIVATE
+            CONAN_PKG::gtest
+            ${PROJECT_NAME}_lib
+    )
+else()
+    # System package target names
+    target_link_libraries(run_tests
+        PRIVATE
+            GTest::gtest
+            GTest::gtest_main
+            ${PROJECT_NAME}_lib
+    )
+endif()
 
 # Set test properties
 set_target_properties(run_tests PROPERTIES

@@ -288,24 +288,7 @@ install(FILES
     DESTINATION lib/cmake/StockPredict
 )
 
-# Documentation with Doxygen
+# Documentation build (uses docs/CMakeLists.txt)
 if(BUILD_DOCS)
-    find_package(Doxygen REQUIRED)
-    
-    # Configure Doxygen
-    set(DOXYGEN_PROJECT_NAME "Stock Prediction System")
-    set(DOXYGEN_PROJECT_VERSION ${PROJECT_VERSION})
-    set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/docs")
-    set(DOXYGEN_INPUT "${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src")
-    set(DOXYGEN_RECURSIVE YES)
-    set(DOXYGEN_EXTRACT_ALL YES)
-    set(DOXYGEN_GENERATE_HTML YES)
-    set(DOXYGEN_HTML_OUTPUT "html")
-    
-    # Create docs target
-    doxygen_add_docs(docs
-        ${CMAKE_SOURCE_DIR}/include
-        ${CMAKE_SOURCE_DIR}/src
-        COMMENT "Generate documentation"
-    )
+    add_subdirectory(docs)
 endif()

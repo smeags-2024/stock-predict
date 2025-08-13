@@ -1,12 +1,12 @@
 #include <QApplication>
-#include "stock_predict/gui/main_window.hpp"
-#include <QStyleFactory>
-#include <QDirIterator>
 #include <QDebug>
+#include <QDirIterator>
+#include <QStyleFactory>
+#include "stock_predict/gui/main_window.hpp"
 
 void setupApplicationStyle() {
     QApplication::setStyle(QStyleFactory::create("Fusion"));
-    
+
     // Dark theme
     QPalette darkPalette;
     darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
@@ -22,9 +22,9 @@ void setupApplicationStyle() {
     darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
     darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
     darkPalette.setColor(QPalette::HighlightedText, Qt::black);
-    
+
     QApplication::setPalette(darkPalette);
-    
+
     // Additional styling
     qApp->setStyleSheet(R"(
         QTabWidget::pane {
@@ -117,22 +117,21 @@ void setupApplicationStyle() {
     )");
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
-    
+
     // Set application metadata
     app.setApplicationName("Stock Predict");
     app.setApplicationVersion("1.0.0");
     app.setOrganizationName("StockPredict");
     app.setOrganizationDomain("stockpredict.com");
-    
+
     // Setup application style
     setupApplicationStyle();
-    
+
     // Create and show main window
     MainWindow window;
     window.show();
-    
+
     return app.exec();
 }

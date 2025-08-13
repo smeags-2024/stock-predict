@@ -1,41 +1,41 @@
 #pragma once
 
-#include <QMainWindow>
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGridLayout>
-#include <QLabel>
-#include <QPushButton>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QSpinBox>
-#include <QDoubleSpinBox>
-#include <QTextEdit>
-#include <QTableWidget>
-#include <QProgressBar>
-#include <QTabWidget>
-#include <QGroupBox>
-#include <QSplitter>
-#include <QStatusBar>
-#include <QMenuBar>
 #include <QAction>
-#include <QToolBar>
-#include <QTimer>
 #include <QChart>
 #include <QChartView>
-#include <QLineSeries>
-#include <QValueAxis>
+#include <QComboBox>
 #include <QDateTimeAxis>
-#include <QScatterSeries>
-#include <QThread>
+#include <QDoubleSpinBox>
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QLineSeries>
+#include <QMainWindow>
+#include <QMenuBar>
 #include <QMutex>
+#include <QProgressBar>
+#include <QPushButton>
+#include <QScatterSeries>
 #include <QSettings>
+#include <QSpinBox>
+#include <QSplitter>
+#include <QStatusBar>
+#include <QTabWidget>
+#include <QTableWidget>
+#include <QTextEdit>
+#include <QThread>
+#include <QTimer>
+#include <QToolBar>
+#include <QVBoxLayout>
+#include <QValueAxis>
+#include <QWidget>
 #include <memory>
 
-#include "stock_predict/stock_predictor.hpp"
 #include "stock_predict/data.hpp"
 #include "stock_predict/risk.hpp"
+#include "stock_predict/stock_predictor.hpp"
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -55,11 +55,11 @@ class RealTimeUpdater;
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
-public:
-    explicit MainWindow(QWidget *parent = nullptr);
+   public:
+    explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override;
 
-private slots:
+   private slots:
     // Menu actions
     void newProject();
     void openProject();
@@ -67,7 +67,7 @@ private slots:
     void saveProjectAs();
     void showPreferences();
     void showAbout();
-    
+
     // Main functionality
     void loadData();
     void trainModel();
@@ -76,26 +76,26 @@ private slots:
     void stopRealTimeMode();
     void runBacktest();
     void optimizePortfolio();
-    
+
     // Data handling
     void onDataLoaded(const std::vector<stock_predict::MarketData>& data);
     void onModelTrained(bool success, const QString& message);
     void onPredictionReady(const stock_predict::PredictionResult& result);
     void onRealTimeUpdate(const stock_predict::MarketData& data);
     void onBacktestComplete(const QVariantMap& results);
-    
+
     // UI updates
     void updateStatusBar(const QString& message);
     void updateProgress(int value);
     void updateModelMetrics();
     void updateRiskMetrics();
     void refreshCharts();
-    
+
     // Settings
     void applySettings();
     void resetSettings();
 
-private:
+   private:
     void setupUI();
     void setupMenuBar();
     void setupToolBar();
@@ -108,22 +108,22 @@ private:
     void setupRiskTab();
     void setupChartsTab();
     void setupSettingsTab();
-    
+
     void setupConnections();
     void loadSettings();
     void saveSettings();
-    
+
     void updateChart(QChart* chart, const std::vector<stock_predict::MarketData>& data);
     void updatePredictionChart(const stock_predict::PredictionResult& prediction);
     void updateRiskChart(const std::vector<double>& risks);
-    
+
     QString formatCurrency(double value) const;
     QString formatPercentage(double value) const;
     QString formatDateTime(const std::chrono::system_clock::time_point& time) const;
 
     // UI Components
     QTabWidget* m_centralTabs;
-    
+
     // Prediction Tab
     QWidget* m_predictionTab;
     QLineEdit* m_symbolEdit;
@@ -138,7 +138,7 @@ private:
     QTableWidget* m_predictionTable;
     QChartView* m_predictionChartView;
     QChart* m_predictionChart;
-    
+
     // Training Tab
     QWidget* m_trainingTab;
     QLineEdit* m_dataSourceEdit;
@@ -149,7 +149,7 @@ private:
     QProgressBar* m_trainingProgress;
     QTextEdit* m_trainingLog;
     QTableWidget* m_metricsTable;
-    
+
     // Backtest Tab
     QWidget* m_backtestTab;
     QLineEdit* m_startDateEdit;
@@ -159,7 +159,7 @@ private:
     QChartView* m_backtestChartView;
     QChart* m_backtestChart;
     QTableWidget* m_backtestResults;
-    
+
     // Portfolio Tab
     QWidget* m_portfolioTab;
     QTextEdit* m_symbolsEdit;
@@ -168,7 +168,7 @@ private:
     QTableWidget* m_portfolioTable;
     QChartView* m_portfolioChartView;
     QChart* m_portfolioChart;
-    
+
     // Risk Tab
     QWidget* m_riskTab;
     QDoubleSpinBox* m_confidenceLevelSpinBox;
@@ -176,7 +176,7 @@ private:
     QTableWidget* m_riskTable;
     QChartView* m_riskChartView;
     QChart* m_riskChart;
-    
+
     // Charts Tab
     QWidget* m_chartsTab;
     QChartView* m_priceChartView;
@@ -185,7 +185,7 @@ private:
     QChart* m_volumeChart;
     QChartView* m_indicatorsChartView;
     QChart* m_indicatorsChart;
-    
+
     // Settings Tab
     QWidget* m_settingsTab;
     QComboBox* m_themeCombo;
@@ -193,11 +193,11 @@ private:
     QComboBox* m_deviceCombo;
     QPushButton* m_applySettingsButton;
     QPushButton* m_resetSettingsButton;
-    
+
     // Status and progress
     QProgressBar* m_progressBar;
     QLabel* m_statusLabel;
-    
+
     // Menus and actions
     QMenuBar* m_menuBar;
     QToolBar* m_toolBar;
@@ -208,23 +208,23 @@ private:
     QAction* m_exitAction;
     QAction* m_preferencesAction;
     QAction* m_aboutAction;
-    
+
     // Backend components
     std::unique_ptr<stock_predict::IStockPredictor> m_predictor;
     std::unique_ptr<stock_predict::DataManager> m_dataManager;
     stock_predict::PredictorConfig m_config;
     std::vector<stock_predict::MarketData> m_currentData;
-    
+
     // Threading
     QThread* m_workerThread;
     PredictionWorker* m_worker;
     QThread* m_realtimeThread;
     RealTimeUpdater* m_realtimeUpdater;
     QTimer* m_updateTimer;
-    
+
     // Settings
     QSettings* m_settings;
-    
+
     // State
     bool m_isRealTimeMode;
     bool m_isTraining;
@@ -238,28 +238,25 @@ private:
 class PredictionWorker : public QObject {
     Q_OBJECT
 
-public:
+   public:
     explicit PredictionWorker(QObject* parent = nullptr);
-    
-public slots:
-    void trainModel(const std::vector<stock_predict::MarketData>& data, 
-                   const stock_predict::PredictorConfig& config, 
-                   int epochs);
-    void makePrediction(const std::vector<stock_predict::MarketData>& data,
-                       const stock_predict::PredictorConfig& config,
-                       int days);
-    void runBacktest(const std::vector<stock_predict::MarketData>& data,
-                    const stock_predict::PredictorConfig& config,
-                    double initialCapital);
 
-signals:
+   public slots:
+    void trainModel(const std::vector<stock_predict::MarketData>& data,
+                    const stock_predict::PredictorConfig& config, int epochs);
+    void makePrediction(const std::vector<stock_predict::MarketData>& data,
+                        const stock_predict::PredictorConfig& config, int days);
+    void runBacktest(const std::vector<stock_predict::MarketData>& data,
+                     const stock_predict::PredictorConfig& config, double initialCapital);
+
+   signals:
     void trainingProgress(int percentage);
     void trainingComplete(bool success, const QString& message);
     void predictionReady(const stock_predict::PredictionResult& result);
     void backtestComplete(const QVariantMap& results);
     void errorOccurred(const QString& error);
 
-private:
+   private:
     std::unique_ptr<stock_predict::IStockPredictor> m_predictor;
     QMutex m_mutex;
 };
@@ -270,24 +267,24 @@ private:
 class RealTimeUpdater : public QObject {
     Q_OBJECT
 
-public:
+   public:
     explicit RealTimeUpdater(QObject* parent = nullptr);
-    
+
     void setSymbol(const QString& symbol);
     void setUpdateInterval(int milliseconds);
-    
-public slots:
+
+   public slots:
     void start();
     void stop();
 
-signals:
+   signals:
     void dataUpdated(const stock_predict::MarketData& data);
     void errorOccurred(const QString& error);
 
-private slots:
+   private slots:
     void updateData();
 
-private:
+   private:
     QString m_symbol;
     QTimer* m_timer;
     std::unique_ptr<stock_predict::DataManager> m_dataManager;

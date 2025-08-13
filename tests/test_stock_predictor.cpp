@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
-#include "stock_predict/stock_predictor.hpp"
-#include "stock_predict/models.hpp"
-#include <vector>
 #include <chrono>
+#include <vector>
+#include "stock_predict/models.hpp"
+#include "stock_predict/stock_predictor.hpp"
 
 class StockPredictorTest : public ::testing::Test {
-protected:
+   protected:
     void SetUp() override {
         // Create sample market data
         auto now = std::chrono::system_clock::now();
@@ -29,10 +29,10 @@ protected:
 TEST_F(StockPredictorTest, CreateLSTMPredictor) {
     stock_predict::PredictorConfig config;
     config.model_type = "lstm";
-    
+
     auto predictor = stock_predict::create_predictor("TEST", config);
     ASSERT_NE(predictor, nullptr);
-    
+
     // Test that we can make a prediction structure (even if not trained)
     EXPECT_NO_THROW({
         // This would require a trained model, so we'll just test creation
@@ -43,7 +43,7 @@ TEST_F(StockPredictorTest, CreateLSTMPredictor) {
 TEST_F(StockPredictorTest, CreateTransformerPredictor) {
     stock_predict::PredictorConfig config;
     config.model_type = "transformer";
-    
+
     auto predictor = stock_predict::create_predictor("TEST", config);
     ASSERT_NE(predictor, nullptr);
 }
@@ -51,7 +51,7 @@ TEST_F(StockPredictorTest, CreateTransformerPredictor) {
 TEST_F(StockPredictorTest, CreateEnsemblePredictor) {
     stock_predict::PredictorConfig config;
     config.model_type = "ensemble";
-    
+
     auto predictor = stock_predict::create_predictor("TEST", config);
     ASSERT_NE(predictor, nullptr);
 }
@@ -59,44 +59,41 @@ TEST_F(StockPredictorTest, CreateEnsemblePredictor) {
 TEST_F(StockPredictorTest, InvalidModelType) {
     stock_predict::PredictorConfig config;
     config.model_type = "invalid_model";
-    
-    EXPECT_THROW(
-        stock_predict::create_predictor("TEST", config),
-        std::invalid_argument
-    );
+
+    EXPECT_THROW(stock_predict::create_predictor("TEST", config), std::invalid_argument);
 }
 
 TEST_F(StockPredictorTest, TrainingDataValidation) {
     stock_predict::PredictorConfig config;
     config.model_type = "lstm";
     config.sequence_length = 50;
-    
+
     auto predictor = stock_predict::create_predictor("TEST", config);
-    
+
     // Test with insufficient data
-    std::vector<stock_predict::MarketData> small_data(sample_data_.begin(), sample_data_.begin() + 10);
+    std::vector<stock_predict::MarketData> small_data(sample_data_.begin(),
+                                                      sample_data_.begin() + 10);
     EXPECT_FALSE(predictor->train(small_data, 1));
-    
+
     // Test with sufficient data
-    EXPECT_TRUE(predictor->train(sample_data_, 5)); // Just 5 epochs for speed
+    EXPECT_TRUE(predictor->train(sample_data_, 5));  // Just 5 epochs for speed
 }
 
 TEST_F(StockPredictorTest, PredictionResultStructure) {
     stock_predict::PredictorConfig config;
     config.model_type = "lstm";
     config.sequence_length = 50;
-    
+
     auto predictor = stock_predict::create_predictor("TEST", config);
-    
+
     // Train with minimal epochs
     ASSERT_TRUE(predictor->train(sample_data_, 2));
-    
+
     // Make prediction
-    std::vector<stock_predict::MarketData> recent_data(
-        sample_data_.end() - 60, sample_data_.end());
-    
+    std::vector<stock_predict::MarketData> recent_data(sample_data_.end() - 60, sample_data_.end());
+
     auto result = predictor->predict_next_day(recent_data);
-    
+
     // Validate prediction result structure
     EXPECT_GT(result.price, 0.0);
     EXPECT_GE(result.confidence, 0.0);
@@ -109,17 +106,16 @@ TEST_F(StockPredictorTest, MultiDayPrediction) {
     stock_predict::PredictorConfig config;
     config.model_type = "lstm";
     config.sequence_length = 50;
-    
+
     auto predictor = stock_predict::create_predictor("TEST", config);
     ASSERT_TRUE(predictor->train(sample_data_, 2));
-    
-    std::vector<stock_predict::MarketData> recent_data(
-        sample_data_.end() - 60, sample_data_.end());
-    
+
+    std::vector<stock_predict::MarketData> recent_data(sample_data_.end() - 60, sample_data_.end());
+
     auto results = predictor->predict_multi_day(recent_data, 5);
-    
+
     EXPECT_EQ(results.size(), 5);
-    
+
     // Check that predictions are reasonable
     for (const auto& result : results) {
         EXPECT_GT(result.price, 0.0);
@@ -132,22 +128,21 @@ TEST_F(StockPredictorTest, ModelSaveLoad) {
     stock_predict::PredictorConfig config;
     config.model_type = "lstm";
     config.sequence_length = 50;
-    
+
     auto predictor = stock_predict::create_predictor("TEST", config);
     ASSERT_TRUE(predictor->train(sample_data_, 2));
-    
+
     // Save model
     std::string model_path = "/tmp/test_model.pt";
     EXPECT_TRUE(predictor->save_model(model_path));
-    
+
     // Create new predictor and load model
     auto new_predictor = stock_predict::create_predictor("TEST", config);
     EXPECT_TRUE(new_predictor->load_model(model_path));
-    
+
     // Test that loaded model can make predictions
-    std::vector<stock_predict::MarketData> recent_data(
-        sample_data_.end() - 60, sample_data_.end());
-    
+    std::vector<stock_predict::MarketData> recent_data(sample_data_.end() - 60, sample_data_.end());
+
     EXPECT_NO_THROW({
         auto result = new_predictor->predict_next_day(recent_data);
         EXPECT_GT(result.price, 0.0);
@@ -159,28 +154,27 @@ TEST_F(StockPredictorTest, PredictionPerformance) {
     stock_predict::PredictorConfig config;
     config.model_type = "lstm";
     config.sequence_length = 50;
-    
+
     auto predictor = stock_predict::create_predictor("TEST", config);
     ASSERT_TRUE(predictor->train(sample_data_, 2));
-    
-    std::vector<stock_predict::MarketData> recent_data(
-        sample_data_.end() - 60, sample_data_.end());
-    
+
+    std::vector<stock_predict::MarketData> recent_data(sample_data_.end() - 60, sample_data_.end());
+
     // Time multiple predictions
     auto start = std::chrono::high_resolution_clock::now();
-    
+
     for (int i = 0; i < 100; ++i) {
         auto result = predictor->predict_next_day(recent_data);
         EXPECT_GT(result.price, 0.0);
     }
-    
+
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    
+
     // Average should be less than 10ms per prediction (very generous for testing)
     double avg_microseconds = duration.count() / 100.0;
     EXPECT_LT(avg_microseconds, 10000.0) << "Prediction too slow: " << avg_microseconds << " μs";
-    
+
     std::cout << "Average prediction time: " << avg_microseconds << " μs" << std::endl;
 }
 
@@ -188,9 +182,9 @@ TEST_F(StockPredictorTest, PredictionPerformance) {
 TEST_F(StockPredictorTest, EmptyDataHandling) {
     stock_predict::PredictorConfig config;
     config.model_type = "lstm";
-    
+
     auto predictor = stock_predict::create_predictor("TEST", config);
-    
+
     std::vector<stock_predict::MarketData> empty_data;
     EXPECT_FALSE(predictor->train(empty_data, 1));
 }
@@ -199,20 +193,18 @@ TEST_F(StockPredictorTest, InsufficientRecentData) {
     stock_predict::PredictorConfig config;
     config.model_type = "lstm";
     config.sequence_length = 50;
-    
+
     auto predictor = stock_predict::create_predictor("TEST", config);
     ASSERT_TRUE(predictor->train(sample_data_, 2));
-    
+
     // Try to predict with insufficient recent data
-    std::vector<stock_predict::MarketData> insufficient_data(sample_data_.begin(), sample_data_.begin() + 10);
-    
-    EXPECT_THROW(
-        predictor->predict_next_day(insufficient_data),
-        std::runtime_error
-    );
+    std::vector<stock_predict::MarketData> insufficient_data(sample_data_.begin(),
+                                                             sample_data_.begin() + 10);
+
+    EXPECT_THROW(predictor->predict_next_day(insufficient_data), std::runtime_error);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

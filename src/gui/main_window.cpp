@@ -1,3 +1,4 @@
+#ifdef QT_AVAILABLE
 #include "stock_predict/gui/main_window.hpp"
 #include <QApplication>
 #include <QColorDialog>
@@ -1137,3 +1138,4 @@ void RealTimeUpdater::updateData() {
 }
 
 #include "main_window.moc"
+#endif // QT_AVAILABLE

@@ -1,3 +1,4 @@
+#ifdef QT_AVAILABLE
 #include <QtCore/QCommandLineParser>
 #include <QtCore/QDir>
 #include <QtCore/QLoggingCategory>
@@ -126,3 +127,4 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 }
+#endif // QT_AVAILABLE

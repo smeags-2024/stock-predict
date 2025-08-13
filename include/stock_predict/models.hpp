@@ -48,9 +48,12 @@ class EnsemblePredictor : public IStockPredictor {
     PredictorConfig config_;
 };
 
-}  // namespace stock_predict**
-*@brief Simple mathematical predictor(fallback when PyTorch unavailable) * /
-    class SimplePredictor : public IStockPredictor {
+}  // namespace stock_predict
+
+/**
+ * @brief Simple mathematical predictor (fallback when PyTorch unavailable)
+ */
+class SimplePredictor : public IStockPredictor {
    public:
     explicit SimplePredictor(const std::string& symbol, const PredictorConfig& config = {});
     ~SimplePredictor() override = default;
@@ -77,34 +80,34 @@ class EnsemblePredictor : public IStockPredictor {
  * @brief LSTM-based stock price predictor (requires PyTorch)
  * Note: Currently disabled - requires PyTorch C++ installation
  */
-class LSTMPredictor : public IStockPredictor {
+class LSTMPredictor : public stock_predict::IStockPredictor {
    public:
-    explicit LSTMPredictor(const std::string& symbol, const PredictorConfig& config = {});
+    explicit LSTMPredictor(const std::string& symbol, const stock_predict::PredictorConfig& config = {});
     ~LSTMPredictor() override = default;
 
     // IStockPredictor interface
     bool load_model(const std::string& model_path) override;
-    bool train(const std::vector<MarketData>& data, int epochs = 100) override;
-    PredictionResult predict_next_day(const std::vector<MarketData>& recent_data) override;
-    std::vector<PredictionResult> predict_multi_day(const std::vector<MarketData>& recent_data,
+    bool train(const std::vector<stock_predict::MarketData>& data, int epochs = 100) override;
+    stock_predict::PredictionResult predict_next_day(const std::vector<stock_predict::MarketData>& recent_data) override;
+    std::vector<stock_predict::PredictionResult> predict_multi_day(const std::vector<stock_predict::MarketData>& recent_data,
                                                     int days) override;
     std::vector<std::pair<std::string, double>> get_performance_metrics() const override;
     bool save_model(const std::string& model_path) const override;
 
    private:
     std::string symbol_;
-    PredictorConfig config_;
+    stock_predict::PredictorConfig config_;
     // PyTorch components would go here when available
     bool trained_;
 };
 
-// Helper methods
-torch::Tensor preprocess_data(const std::vector<MarketData>& data);
-std::vector<MarketData> normalize_data(const std::vector<MarketData>& data);
-torch::Tensor create_sequences(const torch::Tensor& data, int seq_length);
-PredictionResult postprocess_prediction(const torch::Tensor& prediction,
-                                        const MarketData& last_data);
-double calculate_confidence(const torch::Tensor& prediction,
+// Helper methods (disabled - requires PyTorch)
+// torch::Tensor preprocess_data(const std::vector<stock_predict::MarketData>& data);
+// std::vector<stock_predict::MarketData> normalize_data(const std::vector<stock_predict::MarketData>& data);
+// torch::Tensor create_sequences(const torch::Tensor& data, int seq_length);
+// stock_predict::PredictionResult postprocess_prediction(const torch::Tensor& prediction,
+//                                         const stock_predict::MarketData& last_data);
+// double calculate_confidence(const torch::Tensor& prediction,
                             const std::vector<MarketData>& recent_data);
 void update_metrics(double loss, double accuracy);
 }

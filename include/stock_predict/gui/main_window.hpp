@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef QT_AVAILABLE
 #include <QAction>
 #include <QChart>
 #include <QChartView>
@@ -291,3 +292,4 @@ class RealTimeUpdater : public QObject {
     QMutex m_mutex;
     bool m_isRunning;
 };
+#endif // QT_AVAILABLE

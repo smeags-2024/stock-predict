@@ -1,3 +1,4 @@
+#ifdef QT_AVAILABLE
 #include <QApplication>
 #include <QDebug>
 #include <QDirIterator>
@@ -135,3 +136,4 @@ int main(int argc, char *argv[]) {
 
     return app.exec();
 }
+#endif // QT_AVAILABLE

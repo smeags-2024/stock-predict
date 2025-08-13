@@ -88,11 +88,12 @@ class RiskManager {
     static double calculate_information_ratio(const std::vector<double>& portfolio_returns,
                                               const std::vector<double>& benchmark_returns);
 
-   private:
-    static double percentile(std::vector<double> data, double p);
     static double mean(const std::vector<double>& data);
     static double standard_deviation(const std::vector<double>& data);
     static double covariance(const std::vector<double>& x, const std::vector<double>& y);
+
+   private:
+    static double percentile(std::vector<double> data, double p);
 };
 
 /**

@@ -1,3 +1,4 @@
+#ifdef QT_AVAILABLE
 #include <QtCore/QSettings>
 #include <QtCore/QStandardItemModel>
 #include <QtWidgets/QApplication>
@@ -691,3 +692,4 @@ void AboutDialog::setupUI() {
 
 }  // namespace gui
 }  // namespace stock_predict
+#endif // QT_AVAILABLE

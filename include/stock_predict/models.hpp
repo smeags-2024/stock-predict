@@ -53,23 +53,23 @@ class EnsemblePredictor : public IStockPredictor {
 /**
  * @brief Simple mathematical predictor (fallback when PyTorch unavailable)
  */
-class SimplePredictor : public IStockPredictor {
+class SimplePredictor : public stock_predict::IStockPredictor {
    public:
-    explicit SimplePredictor(const std::string& symbol, const PredictorConfig& config = {});
+    explicit SimplePredictor(const std::string& symbol, const stock_predict::PredictorConfig& config = {});
     ~SimplePredictor() override = default;
 
     // IStockPredictor interface
     bool load_model(const std::string& model_path) override;
-    bool train(const std::vector<MarketData>& data, int epochs = 100) override;
-    PredictionResult predict_next_day(const std::vector<MarketData>& recent_data) override;
-    std::vector<PredictionResult> predict_multi_day(const std::vector<MarketData>& recent_data,
+    bool train(const std::vector<stock_predict::MarketData>& data, int epochs = 100) override;
+    stock_predict::PredictionResult predict_next_day(const std::vector<stock_predict::MarketData>& recent_data) override;
+    std::vector<stock_predict::PredictionResult> predict_multi_day(const std::vector<stock_predict::MarketData>& recent_data,
                                                     int days) override;
     std::vector<std::pair<std::string, double>> get_performance_metrics() const override;
     bool save_model(const std::string& model_path) const override;
 
    private:
     std::string symbol_;
-    PredictorConfig config_;
+    stock_predict::PredictorConfig config_;
     std::vector<double> weights_;
     double bias_;
     bool trained_;

@@ -221,12 +221,12 @@ double RiskManager::covariance(const std::vector<double>& x, const std::vector<d
 }
 
 // Portfolio Optimizer Implementation
-Portfolio PortfolioOptimizer::optimize_portfolio(const std::vector<std::vector<double>>& returns,
+PortfolioOptimizer::Portfolio PortfolioOptimizer::optimize_portfolio(const std::vector<std::vector<double>>& returns,
                                                  const std::vector<std::string>& asset_names,
                                                  double risk_free_rate,
                                                  std::optional<double> target_return) {
-    Portfolio portfolio;
-    portfolio.asset_names = asset_names;
+    PortfolioOptimizer::Portfolio portfolio;
+    portfolio.assets = asset_names;
 
     size_t n_assets = returns.size();
     if (n_assets == 0 || n_assets != asset_names.size()) {
@@ -266,15 +266,15 @@ Portfolio PortfolioOptimizer::optimize_portfolio(const std::vector<std::vector<d
     return portfolio;
 }
 
-std::vector<Portfolio> PortfolioOptimizer::efficient_frontier(
+std::vector<PortfolioOptimizer::Portfolio> PortfolioOptimizer::efficient_frontier(
     const std::vector<std::vector<double>>& returns, const std::vector<std::string>& asset_names,
     int num_points) {
-    std::vector<Portfolio> frontier;
+    std::vector<PortfolioOptimizer::Portfolio> frontier;
 
     // For simplicity, create multiple equal-weight portfolios
     // In practice, this would involve optimization across different target returns
     for (int i = 0; i < num_points; ++i) {
-        Portfolio portfolio = optimize_portfolio(returns, asset_names);
+        PortfolioOptimizer::Portfolio portfolio = optimize_portfolio(returns, asset_names);
         frontier.push_back(portfolio);
     }
 

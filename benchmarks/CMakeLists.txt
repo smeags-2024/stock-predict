@@ -12,15 +12,29 @@ file(GLOB_RECURSE BENCHMARK_SOURCES "*.cpp")
 # Create benchmark executable
 add_executable(run_benchmarks ${BENCHMARK_SOURCES})
 
-# Link libraries
-target_link_libraries(run_benchmarks
-    PRIVATE
-        ${PROJECT_NAME}_lib
-        benchmark::benchmark
-        benchmark::benchmark_main
-        ${TORCH_LIBRARIES}
-        Eigen3::Eigen
-)
+# Link libraries - only use available dependencies
+if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    # Conan dependencies
+    target_link_libraries(run_benchmarks
+        PRIVATE
+            ${PROJECT_NAME}_lib
+            benchmark::benchmark
+            benchmark::benchmark_main
+            CONAN_PKG::eigen
+    )
+else()
+    # System dependencies
+    target_link_libraries(run_benchmarks
+        PRIVATE
+            ${PROJECT_NAME}_lib
+            benchmark::benchmark
+            benchmark::benchmark_main
+    )
+    # Add Eigen if available
+    if(TARGET Eigen3::Eigen)
+        target_link_libraries(run_benchmarks PRIVATE Eigen3::Eigen)
+    endif()
+endif()
 
 # Set benchmark properties
 set_target_properties(run_benchmarks PROPERTIES

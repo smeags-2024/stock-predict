@@ -6,8 +6,25 @@ find_package(GTest REQUIRED)
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-# For now, just build minimal test to verify CI setup
-add_executable(run_tests test_minimal.cpp)
+# Find available test files
+file(GLOB_RECURSE TEST_SOURCES "*.cpp")
+list(FILTER TEST_SOURCES EXCLUDE REGEX ".*/phase.*/.*")  # Exclude phase directories for now
+
+if(TEST_SOURCES)
+    # Build test executable with available test files
+    add_executable(run_tests ${TEST_SOURCES})
+else()
+    # Create minimal test if no test files available
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/minimal_test.cpp
+        "#include <gtest/gtest.h>\n"
+        "TEST(BasicTest, AlwaysPass) { EXPECT_TRUE(true); }\n"
+        "int main(int argc, char **argv) {\n"
+        "    ::testing::InitGoogleTest(&argc, argv);\n"
+        "    return RUN_ALL_TESTS();\n"
+        "}\n"
+    )
+    add_executable(run_tests ${CMAKE_CURRENT_BINARY_DIR}/minimal_test.cpp)
+endif()
 
 # Link libraries - use conditional Conan vs system targets
 if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)

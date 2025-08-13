@@ -1,5 +1,67 @@
-cmake_minimum_required(VERSION 3.20)
-project(StockPredict 
+cmake_minimum_required(VER# Find required packages
+find_package(PkgConfig REQUIRED)
+
+# Conan integration
+include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake OPTIONAL)
+
+# Core required packages (simple dependencies)
+find_package(Eigen3 REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(fmt REQUIRED)
+
+# Optional advanced packages (complex dependencies)
+find_package(Torch QUIET)
+find_package(Arrow QUIET)
+find_package(HDF5 QUIET)
+find_package(OpenMP QUIET)
+find_package(cpprest QUIET)
+
+# Qt6 packages for GUI (optional for now)
+find_package(Qt6 QUIET COMPONENTS 
+    Core 
+    Widgets 
+    Charts 
+    Network 
+    Concurrent
+)
+
+if(Qt6_FOUND)
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTOUIC ON)
+    set(CMAKE_AUTORCC ON)
+    message(STATUS "Qt6 found - GUI will be built")
+else()
+    message(STATUS "Qt6 not found - GUI will be skipped")
+endif()
+
+# Optional packages for development
+find_package(CUDA QUIET)
+find_package(GTest QUIET)
+find_package(benchmark QUIET)
+
+# Set feature flags based on what was found
+if(Torch_FOUND)
+    add_compile_definitions(HAS_PYTORCH)
+    message(STATUS "PyTorch found - ML models will use PyTorch backend")
+else()
+    message(STATUS "PyTorch not found - ML models will use simple implementations")
+endif()
+
+if(Arrow_FOUND)
+    add_compile_definitions(HAS_ARROW)
+    message(STATUS "Apache Arrow found - efficient data storage enabled")
+endif()
+
+if(HDF5_FOUND)
+    add_compile_definitions(HAS_HDF5)
+    message(STATUS "HDF5 found - HDF5 data storage enabled")
+endif()
+
+if(OpenMP_FOUND)
+    add_compile_definitions(HAS_OPENMP)
+    message(STATUS "OpenMP found - parallel processing enabled")
+endif()ct(StockPredict 
     VERSION 1.0.0
     DESCRIPTION "Advanced Stock Price Prediction System"
     LANGUAGES CXX)
@@ -79,28 +141,60 @@ set_target_properties(${PROJECT_NAME}_lib PROPERTIES
 )
 
 # Link libraries
+# Link core libraries (always required)
 target_link_libraries(${PROJECT_NAME}_lib
     PUBLIC
-        ${TORCH_LIBRARIES}
         Eigen3::Eigen
-        Arrow::arrow
-        Arrow::arrow_dataset
-        ${HDF5_LIBRARIES}
-        OpenMP::OpenMP_CXX
-        cpprest::cpprest
+        nlohmann_json::nlohmann_json
+        spdlog::spdlog
+        fmt::fmt
 )
 
-# Create GUI library
-add_library(${PROJECT_NAME}_gui ${GUI_SOURCES} ${GUI_HEADERS} ${GUI_RESOURCES})
+# Link optional advanced libraries
+if(Torch_FOUND)
+    target_link_libraries(${PROJECT_NAME}_lib PUBLIC ${TORCH_LIBRARIES})
+endif()
 
-set_target_properties(${PROJECT_NAME}_gui PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED ON
-    POSITION_INDEPENDENT_CODE ON
-)
+if(Arrow_FOUND)
+    target_link_libraries(${PROJECT_NAME}_lib PUBLIC Arrow::arrow Arrow::arrow_dataset)
+endif()
 
-target_link_libraries(${PROJECT_NAME}_gui
-    PUBLIC
+if(HDF5_FOUND)
+    target_link_libraries(${PROJECT_NAME}_lib PUBLIC ${HDF5_LIBRARIES})
+endif()
+
+if(OpenMP_FOUND)
+    target_link_libraries(${PROJECT_NAME}_lib PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
+if(cpprest_FOUND)
+    target_link_libraries(${PROJECT_NAME}_lib PUBLIC cpprest::cpprest)
+endif()
+
+# Create GUI library (if Qt6 is available)
+if(Qt6_FOUND)
+    add_library(${PROJECT_NAME}_gui ${GUI_SOURCES} ${GUI_HEADERS} ${GUI_RESOURCES})
+
+    set_target_properties(${PROJECT_NAME}_gui PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        POSITION_INDEPENDENT_CODE ON
+    )
+
+    target_link_libraries(${PROJECT_NAME}_gui
+        PUBLIC
+            ${PROJECT_NAME}_lib
+            Qt6::Core
+            Qt6::Widgets
+            Qt6::Charts
+            Qt6::Network
+            Qt6::Concurrent
+    )
+else()
+    # Create dummy GUI library for compatibility
+    add_library(${PROJECT_NAME}_gui INTERFACE)
+    message(STATUS "Creating dummy GUI library - Qt6 not available")
+endif()
         ${PROJECT_NAME}_lib
         Qt6::Core
         Qt6::Widgets

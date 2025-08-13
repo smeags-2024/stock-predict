@@ -1,12 +1,9 @@
 [requires]
-# Minimal set of core dependencies to test basic functionality first
-eigen/3.4.0
-nlohmann_json/3.11.2
+# Start with just one dependency to test basic Conan functionality
 spdlog/1.12.0
 
 [generators]
 cmake_find_package
-cmake_paths
 
 [options]
 

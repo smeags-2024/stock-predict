@@ -71,11 +71,26 @@ jobs:
       run: |
         conan profile new default --detect --force
         conan profile update settings.compiler.libcxx=libstdc++11 default
-        conan profile update settings.compiler.cppstd=20 default
+        # Don't set compiler.cppstd=20 - it might be causing the parsing issue
+        echo "Profile created:"
         conan profile show default
+        echo "Testing profile validation:"
+        conan profile show default | grep -E "(compiler|arch|os)" || echo "Profile parsing issue detected"
         
     - name: Install dependencies with Conan
       run: |
+        echo "=== DEBUGGING CONAN ISSUE ==="
+        echo "Current directory: $(pwd)"
+        echo "Contents of conanfile.txt:"
+        cat conanfile.txt
+        echo ""
+        echo "Conan version:"
+        conan --version
+        echo ""
+        echo "Profile contents:"
+        conan profile show default
+        echo ""
+        echo "Attempting conan install..."
         mkdir -p build
         cd build
         conan install .. --build=missing -s build_type=Release

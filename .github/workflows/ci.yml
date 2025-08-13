@@ -163,7 +163,9 @@ jobs:
           cmake \
           ninja-build \
           pkg-config \
-          libssl-dev
+          libssl-dev \
+          libgtest-dev \
+          libgmock-dev
         
         echo "=== DEPENDENCY INSTALLATION COMPLETE ==="
         echo "GCC version:"

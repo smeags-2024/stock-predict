@@ -65,21 +65,38 @@ jobs:
     - name: Install Conan
       run: |
         pip install conan
-        conan profile detect --force
+        # Don't use detect - it's causing the issue
+        # conan profile detect --force
         
-    - name: Configure Conan for C++20
+    - name: Create clean Conan profile manually
       run: |
-        # Ensure we have a proper profile and set C++20
-        conan profile show
-        echo "compiler.cppstd=20" >> ~/.conan2/profiles/default
-        echo "Updated profile:"
-        conan profile show
+        mkdir -p ~/.conan2/profiles
+        cat > ~/.conan2/profiles/default << 'EOF'
+        [settings]
+        arch=x86_64
+        build_type=Release
+        compiler=gcc
+        compiler.version=13
+        compiler.libcxx=libstdc++11
+        compiler.cppstd=20
+        os=Linux
+        EOF
+        echo "Created profile:"
+        cat ~/.conan2/profiles/default
         
     - name: Install dependencies with Conan
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=Release
+        # Use explicit settings instead of profile to bypass the issue
+        conan install .. --build=missing \
+          -s os=Linux \
+          -s arch=x86_64 \
+          -s compiler=gcc \
+          -s compiler.version=13 \
+          -s compiler.libcxx=libstdc++11 \
+          -s compiler.cppstd=20 \
+          -s build_type=Release
     
     - name: Run clang-tidy (skip if dependencies missing)
       run: |
@@ -175,7 +192,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=${{ matrix.build_type }}
+        conan install .. --build=missing -s os=Linux -s arch=x86_64 -s compiler=gcc -s compiler.version=13 -s compiler.libcxx=libstdc++11 -s compiler.cppstd=20 -s build_type=${{ matrix.build_type }}
     
     - name: Configure CMake
       run: |
@@ -257,7 +274,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=Debug
+        conan install .. --build=missing -s os=Linux -s arch=x86_64 -s compiler=gcc -s compiler.version=13 -s compiler.libcxx=libstdc++11 -s compiler.cppstd=20 -s build_type=Debug
     
     - name: Configure with sanitizer
       run: |
@@ -315,7 +332,7 @@ jobs:
       run: |
         mkdir -p build-current
         cd build-current
-        conan install .. --build=missing -s build_type=Release
+        conan install .. --build=missing -s os=Linux -s arch=x86_64 -s compiler=gcc -s compiler.version=13 -s compiler.libcxx=libstdc++11 -s compiler.cppstd=20 -s build_type=Release
         cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -G Ninja
         ninja -j$(nproc)
         ./bin/run_benchmarks --benchmark_format=json --benchmark_out=current_bench.json
@@ -325,7 +342,7 @@ jobs:
         git checkout origin/main
         mkdir -p build-baseline
         cd build-baseline
-        conan install .. --build=missing -s build_type=Release
+        conan install .. --build=missing -s os=Linux -s arch=x86_64 -s compiler=gcc -s compiler.version=13 -s compiler.libcxx=libstdc++11 -s compiler.cppstd=20 -s build_type=Release
         cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -G Ninja
         ninja -j$(nproc)
         ./bin/run_benchmarks --benchmark_format=json --benchmark_out=baseline_bench.json
@@ -356,14 +373,31 @@ jobs:
     - name: Install Conan
       run: |
         pip install conan
-        conan profile detect --force
-        echo "compiler.cppstd=20" >> ~/.conan2/profiles/default
+        # Create clean profile manually
+        mkdir -p ~/.conan2/profiles
+        cat > ~/.conan2/profiles/default << 'EOF'
+        [settings]
+        arch=x86_64
+        build_type=Release
+        compiler=gcc
+        compiler.version=13
+        compiler.libcxx=libstdc++11
+        compiler.cppstd=20
+        os=Linux
+        EOF
     
     - name: Install dependencies with Conan
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=Release
+        conan install .. --build=missing \
+          -s os=Linux \
+          -s arch=x86_64 \
+          -s compiler=gcc \
+          -s compiler.version=13 \
+          -s compiler.libcxx=libstdc++11 \
+          -s compiler.cppstd=20 \
+          -s build_type=Release
     
     - name: Build documentation
       run: |
@@ -425,7 +459,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=Release
+        conan install .. --build=missing -s os=Linux -s arch=x86_64 -s compiler=gcc -s compiler.version=13 -s compiler.libcxx=libstdc++11 -s compiler.cppstd=20 -s build_type=Release
         cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -G Ninja
         ninja -j$(nproc)
         cpack

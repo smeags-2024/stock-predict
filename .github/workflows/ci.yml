@@ -110,17 +110,27 @@ jobs:
     needs: code-quality
     strategy:
       matrix:
-        # Multi-platform build matrix: Linux, macOS (Windows later)
-        os: [ubuntu-latest, macos-latest]
-        build_type: [Release, Debug]
+        # Explicit build matrix to avoid configuration issues
         include:
-          # Linux with GCC
+          # Ubuntu builds
           - os: ubuntu-latest
+            build_type: Release
             compiler: gcc
             cc: gcc
             cxx: g++
-          # macOS with Clang  
+          - os: ubuntu-latest
+            build_type: Debug  
+            compiler: gcc
+            cc: gcc
+            cxx: g++
+          # macOS builds
           - os: macos-latest
+            build_type: Release
+            compiler: clang
+            cc: clang
+            cxx: clang++
+          - os: macos-latest
+            build_type: Debug
             compiler: clang
             cc: clang
             cxx: clang++
@@ -142,6 +152,11 @@ jobs:
     - name: Install system dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
+        echo "=== INSTALLING SYSTEM DEPENDENCIES (LINUX) ==="
+        echo "OS: ${{ matrix.os }}"
+        echo "Build type: ${{ matrix.build_type }}"
+        echo "Compiler: ${{ matrix.compiler }}"
+        
         sudo apt-get update
         sudo apt-get install -y \
           build-essential \
@@ -149,18 +164,34 @@ jobs:
           ninja-build \
           pkg-config \
           libssl-dev
+        
+        echo "=== DEPENDENCY INSTALLATION COMPLETE ==="
+        echo "GCC version:"
+        gcc --version
+        echo "CMake version:"
+        cmake --version
     
     - name: Install system dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
+        echo "=== INSTALLING SYSTEM DEPENDENCIES (MACOS) ==="
+        echo "OS: ${{ matrix.os }}"
+        echo "Build type: ${{ matrix.build_type }}"
+        echo "Compiler: ${{ matrix.compiler }}"
+        
         brew install cmake ninja pkg-config openssl
+        
+        echo "=== DEPENDENCY INSTALLATION COMPLETE ==="
+        echo "Clang version:"
+        clang --version
+        echo "CMake version:"
+        cmake --version
     
     - name: Setup compiler environment
       run: |
         echo "CC=${{ matrix.cc }}" >> $GITHUB_ENV
         echo "CXX=${{ matrix.cxx }}" >> $GITHUB_ENV
-      env:
-        COMPILER: ${{ matrix.compiler }}
+        echo "Build configuration: OS=${{ matrix.os }}, BUILD_TYPE=${{ matrix.build_type }}, COMPILER=${{ matrix.compiler }}"
     
     - name: Install Python and Conan
       uses: actions/setup-python@v4
@@ -169,20 +200,26 @@ jobs:
     
     - name: Install Conan
       run: |
+        echo "=== INSTALLING CONAN ==="
         pip install conan==1.62.0
+        conan --version
     
     - name: Setup Conan profile
       run: |
+        echo "=== SETTING UP CONAN PROFILE ==="
         conan profile new default --detect --force
         if [[ "${{ runner.os }}" == "Linux" ]]; then
           conan profile update settings.compiler.libcxx=libstdc++11 default
         elif [[ "${{ runner.os }}" == "macOS" ]]; then
           conan profile update settings.compiler.libcxx=libc++ default
         fi
+        echo "Conan profile configuration:"
         conan profile show default
     
     - name: Install dependencies with Conan
       run: |
+        echo "=== INSTALLING DEPENDENCIES WITH CONAN ==="
+        echo "Build type: ${{ matrix.build_type }}"
         mkdir -p build
         cd build
         conan install .. --build=missing -s build_type=${{ matrix.build_type }}

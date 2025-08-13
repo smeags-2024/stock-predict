@@ -102,32 +102,6 @@ endif()
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -march=native")
 
-# Find required packages
-find_package(PkgConfig REQUIRED)
-
-# Conan integration
-include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake OPTIONAL)
-
-# Find packages
-find_package(Torch REQUIRED)
-find_package(Eigen3 REQUIRED)
-find_package(Arrow REQUIRED)
-find_package(HDF5 REQUIRED)
-find_package(OpenMP REQUIRED)
-find_package(cpprest REQUIRED)
-
-# Qt6 packages for GUI
-find_package(Qt6 REQUIRED COMPONENTS 
-    Core 
-    Widgets 
-    Charts 
-    Network 
-    Concurrent
-)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
-
 # Optional packages
 find_package(CUDA QUIET)
 find_package(GTest QUIET)
@@ -145,8 +119,12 @@ file(GLOB_RECURSE HEADERS "include/*.hpp" "include/*.h")
 file(GLOB_RECURSE GUI_SOURCES "src/gui/*.cpp")
 file(GLOB_RECURSE GUI_HEADERS "include/stock_predict/gui/*.h")
 
-# Qt resource files
-qt6_add_resources(GUI_RESOURCES src/gui/resources.qrc)
+# Qt resource files (only if Qt6 found)
+if(Qt6_FOUND)
+    qt6_add_resources(GUI_RESOURCES src/gui/resources.qrc)
+else()
+    set(GUI_RESOURCES "")
+endif()
 
 # Remove main files from library sources
 list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")

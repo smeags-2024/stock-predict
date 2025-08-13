@@ -66,6 +66,12 @@ jobs:
       run: |
         pip install conan
         conan profile detect --force
+        
+    - name: Configure Conan profile
+      run: |
+        conan profile show default
+        # Set compiler.cppstd to 20 for C++20 support
+        conan profile update settings.compiler.cppstd=20 default
     
     - name: Install dependencies with Conan
       run: |
@@ -340,9 +346,25 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y doxygen graphviz
     
-    - name: Build documentation
+    - name: Setup Python for Conan
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Conan
+      run: |
+        pip install conan
+        conan profile detect --force
+        conan profile update settings.compiler.cppstd=20 default
+    
+    - name: Install dependencies with Conan
       run: |
         mkdir -p build
+        cd build
+        conan install .. --build=missing -s build_type=Release
+    
+    - name: Build documentation
+      run: |
         cd build
         cmake .. -DBUILD_DOCS=ON
         make docs

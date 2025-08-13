@@ -68,10 +68,13 @@ endif()
 if(OpenMP_FOUND)
     add_compile_definitions(HAS_OPENMP)
     message(STATUS "OpenMP found - parallel processing enabled")
-endif()ct(StockPredict 
-    VERSION 1.0.0
-    DESCRIPTION "Advanced Stock Price Prediction System"
-    LANGUAGES CXX)
+endif()
+
+# Project information (duplicate - should be removed but kept for now)
+# project(StockPredict 
+#     VERSION 1.0.0
+#     DESCRIPTION "Advanced Stock Price Prediction System"
+#     LANGUAGES CXX)
 
 # C++ Standard
 set(CMAKE_CXX_STANDARD 20)

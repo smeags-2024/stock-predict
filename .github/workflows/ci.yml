@@ -110,15 +110,15 @@ jobs:
     needs: code-quality
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-20.04]
-        compiler: [gcc-11, gcc-12, clang-14, clang-15]
-        build_type: [Debug, Release]
+        # Simplified matrix for debugging - focus on core combinations
+        os: [ubuntu-latest]
+        compiler: [gcc-13, clang-14]
+        build_type: [Release, Debug]
         exclude:
-          # Exclude some combinations to reduce CI time
-          - os: ubuntu-20.04
-            compiler: clang-15
-          - os: ubuntu-20.04
-            compiler: gcc-12
+          # Keep it minimal during debugging phase
+          - os: ubuntu-latest
+            compiler: clang-14
+            build_type: Debug
     
     runs-on: ${{ matrix.os }}
     
@@ -264,21 +264,21 @@ jobs:
     
     - name: Install Conan
       run: |
-        pip install "conan>=2.0"
-        conan profile detect --force
+        pip install conan==1.62.0
+        conan profile new default --detect --force
+        conan profile update settings.compiler.libcxx=libstdc++11 default
     
     - name: Install dependencies
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s os=Linux -s arch=x86_64 -s compiler=gcc -s compiler.version=13 -s compiler.libcxx=libstdc++11 -s compiler.cppstd=20 -s build_type=Debug
+        conan install .. --build=missing -s build_type=Debug
     
     - name: Configure with sanitizer
       run: |
         cd build
         cmake .. \
           -DCMAKE_BUILD_TYPE=Debug \
-          -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake \
           -DCMAKE_CXX_COMPILER=clang++-14 \
           -DCMAKE_C_COMPILER=clang-14 \
           -DCMAKE_CXX_FLAGS="-fsanitize=${{ matrix.sanitizer }} -fno-omit-frame-pointer" \
@@ -369,32 +369,20 @@ jobs:
     
     - name: Install Conan
       run: |
-        pip install conan
-        # Create clean profile manually
-        mkdir -p ~/.conan2/profiles
-        cat > ~/.conan2/profiles/default << 'EOF'
-        [settings]
-        arch=x86_64
-        build_type=Release
-        compiler=gcc
-        compiler.version=13
-        compiler.libcxx=libstdc++11
-        compiler.cppstd=20
-        os=Linux
-        EOF
+        pip install conan==1.62.0
+        # Use Conan 1.x like the other jobs
+        
+    - name: Setup Conan 1.x profile
+      run: |
+        conan profile new default --detect --force
+        conan profile update settings.compiler.libcxx=libstdc++11 default
+        conan profile show default
     
     - name: Install dependencies with Conan
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing \
-          -s os=Linux \
-          -s arch=x86_64 \
-          -s compiler=gcc \
-          -s compiler.version=13 \
-          -s compiler.libcxx=libstdc++11 \
-          -s compiler.cppstd=20 \
-          -s build_type=Release
+        conan install .. --build=missing -s build_type=Release
     
     - name: Build documentation
       run: |

@@ -1,6 +1,7 @@
 [requires]
-# Start with just one dependency to test basic Conan functionality
+# Start with basic dependencies to test functionality
 spdlog/1.12.0
+gtest/1.14.0
 
 [generators]
 cmake_find_package

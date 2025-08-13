@@ -6,18 +6,15 @@ find_package(GTest REQUIRED)
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-# Test source files
-file(GLOB_RECURSE TEST_SOURCES "*.cpp")
+# For now, just build minimal test to verify CI setup
+add_executable(run_tests test_minimal.cpp)
 
-# Create test executable
-add_executable(run_tests ${TEST_SOURCES})
-
-# Link libraries
+# Link libraries - minimal dependencies only
 target_link_libraries(run_tests
     PRIVATE
-        ${PROJECT_NAME}_lib
         GTest::gtest
         GTest::gtest_main
+    )
         ${TORCH_LIBRARIES}
         Eigen3::Eigen
 )

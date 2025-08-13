@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "emulator-builder": "shellscript",
+        "array": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "span": "cpp"
+    }
+}

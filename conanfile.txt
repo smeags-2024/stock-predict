@@ -1,0 +1,63 @@
+[requires]
+# Core dependencies
+libtorch/2.0.1
+eigen/3.4.0
+arrow/14.0.1
+hdf5/1.14.2
+openmp/system
+
+# GUI framework
+qt/6.5.2
+
+# Networking
+cpprest/2.10.19
+
+# JSON handling
+nlohmann_json/3.11.2
+
+# Logging
+spdlog/1.12.0
+
+# Testing (optional)
+gtest/1.14.0
+
+# Benchmarking (optional)
+benchmark/1.8.3
+
+# Utilities
+fmt/10.1.1
+cli11/2.3.2
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[options]
+# Torch options
+libtorch/*:shared=True
+libtorch/*:cuda=False  # Set to True if you have CUDA
+
+# Arrow options
+arrow/*:shared=True
+arrow/*:with_json=True
+arrow/*:with_csv=True
+arrow/*:with_parquet=True
+
+# HDF5 options
+hdf5/*:shared=True
+hdf5/*:hl=True
+hdf5/*:threadsafe=True
+
+# OpenMP
+openmp/*:shared=True
+
+[tool_requires]
+cmake/[>=3.20]
+
+[settings]
+os=Linux
+arch=x86_64
+compiler=gcc
+compiler.version=11
+compiler.libcxx=libstdc++11
+build_type=Release

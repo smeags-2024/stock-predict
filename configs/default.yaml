@@ -1,0 +1,203 @@
+# Stock Prediction System Configuration
+
+# Model Configuration
+model:
+  type: "ensemble"  # Options: lstm, gru, transformer, ensemble
+  sequence_length: 60
+  prediction_horizon: 1
+  
+  # LSTM specific settings
+  lstm:
+    hidden_size: 64
+    num_layers: 2
+    dropout: 0.2
+    
+  # Transformer specific settings  
+  transformer:
+    d_model: 128
+    nhead: 8
+    num_layers: 4
+    dropout: 0.1
+    
+  # Ensemble settings
+  ensemble:
+    models: ["lstm", "transformer"]
+    weights: [0.5, 0.5]
+
+# Data Configuration
+data:
+  features: ["close", "volume", "rsi", "macd", "bb", "atr", "ema", "sma"]
+  normalize: true
+  train_test_split: 0.8
+  validation_split: 0.1
+  
+  # Data sources (in order of preference)
+  sources:
+    - type: "yahoo"
+      priority: 1
+    - type: "alphavantage"
+      priority: 2
+      api_key: "${ALPHAVANTAGE_API_KEY}"
+    - type: "csv"
+      priority: 3
+      path: "data/"
+
+# Feature Engineering
+features:
+  technical_indicators:
+    rsi_period: 14
+    macd_fast: 12
+    macd_slow: 26
+    macd_signal: 9
+    bb_period: 20
+    bb_std: 2.0
+    atr_period: 14
+    sma_periods: [10, 20, 50]
+    ema_periods: [12, 26]
+    
+  wavelets:
+    enabled: true
+    type: "db4"
+    levels: 3
+    
+  fourier:
+    enabled: true
+    top_frequencies: 5
+
+# Risk Management
+risk:
+  confidence_level: 0.95
+  var_window: 252  # Trading days for VaR calculation
+  max_position_size: 0.05  # 5% of portfolio
+  stop_loss: 0.02  # 2% stop loss
+  take_profit: 0.04  # 4% take profit
+  
+  # Position sizing
+  position_sizing:
+    method: "kelly"  # Options: kelly, fixed_fractional, volatility, var
+    kelly_fraction_cap: 0.25  # Maximum Kelly fraction
+    fixed_risk_percent: 0.02  # For fixed fractional
+    target_volatility: 0.15   # For volatility targeting
+
+# Performance Configuration
+performance:
+  use_gpu: false
+  num_threads: 0  # 0 = auto-detect
+  batch_size: 32
+  
+  # Training settings
+  training:
+    epochs: 100
+    learning_rate: 0.001
+    early_stopping: true
+    patience: 10
+    
+  # Optimization
+  optimization:
+    optimizer: "adam"  # Options: adam, adamw, sgd
+    weight_decay: 0.0001
+    lr_scheduler: "cosine"  # Options: cosine, exponential, step
+
+# Logging and Monitoring
+logging:
+  level: "info"  # Options: debug, info, warning, error
+  file: "logs/stock_predict.log"
+  max_size: "10MB"
+  backup_count: 5
+  
+  # Metrics tracking
+  metrics:
+    track_performance: true
+    save_predictions: true
+    save_interval: 100  # Save every N predictions
+
+# Real-time Configuration
+realtime:
+  update_interval: "1m"  # Options: 1s, 1m, 5m, 15m, 1h
+  symbols: ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"]
+  
+  # Streaming settings
+  streaming:
+    buffer_size: 1000
+    max_latency: "100ms"
+    
+# Backtesting Configuration  
+backtesting:
+  start_date: "2020-01-01"
+  end_date: "2023-12-31"
+  initial_capital: 100000.0
+  commission: 0.001  # 0.1% commission
+  slippage: 0.0005   # 0.05% slippage
+  
+  # Strategy settings
+  strategy:
+    rebalance_frequency: "daily"
+    max_positions: 10
+    min_holding_period: "1d"
+
+# Portfolio Optimization
+portfolio:
+  optimization_method: "mean_variance"  # Options: mean_variance, risk_parity, black_litterman
+  constraints:
+    max_weight: 0.20      # Maximum 20% in any single asset
+    min_weight: 0.01      # Minimum 1% in any asset
+    max_sector_weight: 0.30  # Maximum 30% in any sector
+    
+  # Risk budgeting
+  risk_budget:
+    max_portfolio_var: 0.05  # 5% portfolio VaR
+    max_correlation: 0.80    # Maximum correlation between assets
+    
+# Database Configuration
+database:
+  type: "sqlite"  # Options: sqlite, postgresql, mysql
+  path: "data/stock_predict.db"
+  
+  # Connection settings (for external databases)
+  host: "localhost"
+  port: 5432
+  username: "${DB_USERNAME}"
+  password: "${DB_PASSWORD}"
+  
+# API Configuration
+api:
+  enabled: false
+  host: "0.0.0.0"
+  port: 8080
+  cors_origins: ["*"]
+  
+  # Authentication
+  auth:
+    enabled: false
+    secret_key: "${API_SECRET_KEY}"
+    token_expiry: "24h"
+
+# Caching
+cache:
+  enabled: true
+  type: "file"  # Options: file, redis, memory
+  ttl: "1h"     # Time to live for cached data
+  max_size: "1GB"
+  path: "cache/"
+
+# Environment specific settings
+environments:
+  development:
+    logging:
+      level: "debug"
+    performance:
+      use_gpu: false
+      
+  testing:
+    data:
+      train_test_split: 0.6
+    performance:
+      training:
+        epochs: 10
+        
+  production:
+    logging:
+      level: "warning"
+    performance:
+      use_gpu: true
+      num_threads: -1  # Use all available threads

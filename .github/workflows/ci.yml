@@ -317,15 +317,16 @@ jobs:
     
     - name: Install Conan
       run: |
-        pip install "conan>=2.0"
-        conan profile detect --force
+        pip install conan==1.62.0
+        conan profile new default --detect --force
+        conan profile update settings.compiler.libcxx=libstdc++11 default
     
     - name: Build current version
       run: |
         mkdir -p build-current
         cd build-current
-        conan install .. --build=missing -s os=Linux -s arch=x86_64 -s compiler=gcc -s compiler.version=13 -s compiler.libcxx=libstdc++11 -s compiler.cppstd=20 -s build_type=Release
-        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -G Ninja
+        conan install .. --build=missing -s build_type=Release
+        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
         ninja -j$(nproc)
         ./bin/run_benchmarks --benchmark_format=json --benchmark_out=current_bench.json
     
@@ -334,8 +335,8 @@ jobs:
         git checkout origin/main
         mkdir -p build-baseline
         cd build-baseline
-        conan install .. --build=missing -s os=Linux -s arch=x86_64 -s compiler=gcc -s compiler.version=13 -s compiler.libcxx=libstdc++11 -s compiler.cppstd=20 -s build_type=Release
-        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -G Ninja
+        conan install .. --build=missing -s build_type=Release
+        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
         ninja -j$(nproc)
         ./bin/run_benchmarks --benchmark_format=json --benchmark_out=baseline_bench.json
     
@@ -432,15 +433,16 @@ jobs:
     
     - name: Install Conan
       run: |
-        pip install "conan>=2.0"
-        conan profile detect --force
+        pip install conan==1.62.0
+        conan profile new default --detect --force
+        conan profile update settings.compiler.libcxx=libstdc++11 default
     
     - name: Build release
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s os=Linux -s arch=x86_64 -s compiler=gcc -s compiler.version=13 -s compiler.libcxx=libstdc++11 -s compiler.cppstd=20 -s build_type=Release
-        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -G Ninja
+        conan install .. --build=missing -s build_type=Release
+        cmake .. -DCMAKE_BUILD_TYPE=Release -G Ninja
         ninja -j$(nproc)
         cpack
     

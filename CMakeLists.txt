@@ -147,15 +147,21 @@ qt6_add_resources(GUI_RESOURCES src/gui/resources.qrc)
 list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
 list(REMOVE_ITEM GUI_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/gui/gui_main.cpp")
 
-# Create library
-add_library(${PROJECT_NAME}_lib ${SOURCES} ${HEADERS})
-
-# Target properties
-set_target_properties(${PROJECT_NAME}_lib PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED ON
-    POSITION_INDEPENDENT_CODE ON
-)
+# Create library (minimal version - only if sources exist)
+if(SOURCES)
+    add_library(${PROJECT_NAME}_lib ${SOURCES} ${HEADERS})
+    
+    # Target properties
+    set_target_properties(${PROJECT_NAME}_lib PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        POSITION_INDEPENDENT_CODE ON
+    )
+else()
+    # Create header-only interface library if no sources
+    add_library(${PROJECT_NAME}_lib INTERFACE)
+    target_include_directories(${PROJECT_NAME}_lib INTERFACE include)
+endif()
 
 # Link libraries
 # Link core libraries (always required)

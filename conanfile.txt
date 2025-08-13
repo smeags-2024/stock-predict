@@ -23,31 +23,8 @@ benchmark/1.8.3
 CMakeDeps
 CMakeToolchain
 
-[options]
-# Torch options
-libtorch/*:shared=True
-libtorch/*:cuda=False  # Set to True if you have CUDA
-
-# Arrow options
-arrow/*:shared=True
-arrow/*:with_json=True
-arrow/*:with_csv=True
-arrow/*:with_parquet=True
-
-# HDF5 options
-hdf5/*:shared=True
-hdf5/*:hl=True
-hdf5/*:threadsafe=True
-
-# OpenMP
-openmp/*:shared=True
-
 [tool_requires]
 cmake/[>=3.20]
-
-[settings]
-os=Linux
-arch=x86_64
 compiler=gcc
 compiler.version=11
 compiler.libcxx=libstdc++11

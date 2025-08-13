@@ -1,4 +1,11 @@
-cmake_minimum_required(VER# Find required packages
+cmake_minimum_required(VERSION 3.20)
+project(StockPredict VERSION 1.0.0 LANGUAGES CXX)
+
+# Set C++20 standard
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find required packages
 find_package(PkgConfig REQUIRED)
 
 # Conan integration
@@ -195,13 +202,6 @@ else()
     add_library(${PROJECT_NAME}_gui INTERFACE)
     message(STATUS "Creating dummy GUI library - Qt6 not available")
 endif()
-        ${PROJECT_NAME}_lib
-        Qt6::Core
-        Qt6::Widgets
-        Qt6::Charts
-        Qt6::Network
-        Qt6::Concurrent
-)
 
 # CUDA support
 if(CUDA_FOUND)
@@ -214,19 +214,28 @@ endif()
 add_executable(${PROJECT_NAME} src/main.cpp)
 target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib)
 
-# GUI executable
-add_executable(${PROJECT_NAME}_gui_app src/gui/gui_main.cpp)
-target_link_libraries(${PROJECT_NAME}_gui_app ${PROJECT_NAME}_gui ${PROJECT_NAME}_lib)
-
-# Set executable names
-set_target_properties(${PROJECT_NAME}_gui_app PROPERTIES OUTPUT_NAME "${PROJECT_NAME}_gui")
+# GUI executable (only if Qt6 is available)
+if(Qt6_FOUND)
+    add_executable(${PROJECT_NAME}_gui_app src/gui/gui_main.cpp)
+    target_link_libraries(${PROJECT_NAME}_gui_app ${PROJECT_NAME}_gui ${PROJECT_NAME}_lib)
+    # Set executable names
+    set_target_properties(${PROJECT_NAME}_gui_app PROPERTIES OUTPUT_NAME "${PROJECT_NAME}_gui")
+endif()
 
 # Install targets
-install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_gui_app ${PROJECT_NAME}_lib ${PROJECT_NAME}_gui
+install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_lib
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
+
+if(Qt6_FOUND)
+    install(TARGETS ${PROJECT_NAME}_gui_app ${PROJECT_NAME}_gui
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+    )
+endif()
 
 install(DIRECTORY include/ DESTINATION include)
 
@@ -243,7 +252,7 @@ endif()
 
 # Documentation
 find_package(Doxygen QUIET)
-if(DOXYGEN_FOUND)
+if(DOXYGEN_FOUND AND EXISTS ${CMAKE_SOURCE_DIR}/docs)
     add_subdirectory(docs)
 endif()
 

@@ -67,17 +67,15 @@ jobs:
         pip install conan
         conan profile detect --force
         
-    - name: Configure Conan profile
+    - name: Show Conan profile (for debugging)
       run: |
         conan profile show default
-        # Set compiler.cppstd to 20 for C++20 support
-        conan profile update settings.compiler.cppstd=20 default
     
     - name: Install dependencies with Conan
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=Release
+        conan install .. --build=missing -s build_type=Release -s compiler.cppstd=20
     
     - name: Run clang-tidy (skip if dependencies missing)
       run: |
@@ -173,7 +171,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=${{ matrix.build_type }}
+        conan install .. --build=missing -s build_type=${{ matrix.build_type }} -s compiler.cppstd=20
     
     - name: Configure CMake
       run: |
@@ -255,7 +253,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=Debug
+        conan install .. --build=missing -s build_type=Debug -s compiler.cppstd=20
     
     - name: Configure with sanitizer
       run: |
@@ -313,7 +311,7 @@ jobs:
       run: |
         mkdir -p build-current
         cd build-current
-        conan install .. --build=missing -s build_type=Release
+        conan install .. --build=missing -s build_type=Release -s compiler.cppstd=20
         cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -G Ninja
         ninja -j$(nproc)
         ./bin/run_benchmarks --benchmark_format=json --benchmark_out=current_bench.json
@@ -323,7 +321,7 @@ jobs:
         git checkout origin/main
         mkdir -p build-baseline
         cd build-baseline
-        conan install .. --build=missing -s build_type=Release
+        conan install .. --build=missing -s build_type=Release -s compiler.cppstd=20
         cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -G Ninja
         ninja -j$(nproc)
         ./bin/run_benchmarks --benchmark_format=json --benchmark_out=baseline_bench.json
@@ -355,13 +353,13 @@ jobs:
       run: |
         pip install conan
         conan profile detect --force
-        conan profile update settings.compiler.cppstd=20 default
+        conan profile show default
     
     - name: Install dependencies with Conan
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=Release
+        conan install .. --build=missing -s build_type=Release -s compiler.cppstd=20
     
     - name: Build documentation
       run: |
@@ -423,7 +421,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=Release
+        conan install .. --build=missing -s build_type=Release -s compiler.cppstd=20
         cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -G Ninja
         ninja -j$(nproc)
         cpack

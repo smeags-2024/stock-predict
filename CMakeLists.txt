@@ -8,8 +8,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Find required packages
 find_package(PkgConfig REQUIRED)
 
-# Conan integration
-include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake OPTIONAL)
+# Conan integration for Conan 1.x
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake OPTIONAL)
+if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    conan_basic_setup(TARGETS)
+endif()
 
 # Core required packages (minimal set for testing)
 find_package(Eigen3 REQUIRED)

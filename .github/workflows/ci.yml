@@ -378,12 +378,30 @@ jobs:
       run: |
         mkdir -p build
         cd build
+        echo "=== CONAN DEBUGGING ==="
+        echo "Installing dependencies..."
         conan install .. --build=missing -s build_type=Release
+        echo ""
+        echo "Files created by Conan:"
+        ls -la
+        echo ""
+        echo "Looking for conanbuildinfo.cmake:"
+        find . -name "conanbuildinfo.cmake" -ls
+        echo ""
+        echo "Looking for any .cmake files:"
+        find . -name "*.cmake" -ls
     
     - name: Build documentation
       run: |
         cd build
+        echo "=== CMAKE DEBUGGING ==="
+        echo "Current directory contents:"
+        ls -la
+        echo ""
+        echo "Running CMake configure..."
         cmake .. -DBUILD_DOCS=ON
+        echo ""
+        echo "Building docs..."
         make docs
     
     - name: Deploy to GitHub Pages

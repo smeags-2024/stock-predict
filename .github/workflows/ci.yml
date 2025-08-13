@@ -75,7 +75,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=Release -s compiler.cppstd=20
+        conan install .. --build=missing -s build_type=Release
     
     - name: Run clang-tidy (skip if dependencies missing)
       run: |
@@ -171,7 +171,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=${{ matrix.build_type }} -s compiler.cppstd=20
+        conan install .. --build=missing -s build_type=${{ matrix.build_type }}
     
     - name: Configure CMake
       run: |
@@ -253,7 +253,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=Debug -s compiler.cppstd=20
+        conan install .. --build=missing -s build_type=Debug
     
     - name: Configure with sanitizer
       run: |
@@ -311,7 +311,7 @@ jobs:
       run: |
         mkdir -p build-current
         cd build-current
-        conan install .. --build=missing -s build_type=Release -s compiler.cppstd=20
+        conan install .. --build=missing -s build_type=Release
         cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -G Ninja
         ninja -j$(nproc)
         ./bin/run_benchmarks --benchmark_format=json --benchmark_out=current_bench.json
@@ -321,7 +321,7 @@ jobs:
         git checkout origin/main
         mkdir -p build-baseline
         cd build-baseline
-        conan install .. --build=missing -s build_type=Release -s compiler.cppstd=20
+        conan install .. --build=missing -s build_type=Release
         cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -G Ninja
         ninja -j$(nproc)
         ./bin/run_benchmarks --benchmark_format=json --benchmark_out=baseline_bench.json
@@ -359,7 +359,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=Release -s compiler.cppstd=20
+        conan install .. --build=missing -s build_type=Release
     
     - name: Build documentation
       run: |
@@ -421,7 +421,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        conan install .. --build=missing -s build_type=Release -s compiler.cppstd=20
+        conan install .. --build=missing -s build_type=Release
         cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -G Ninja
         ninja -j$(nproc)
         cpack

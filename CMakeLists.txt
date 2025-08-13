@@ -262,12 +262,6 @@ if(benchmark_FOUND)
     add_subdirectory(benchmarks)
 endif()
 
-# Documentation
-find_package(Doxygen QUIET)
-if(DOXYGEN_FOUND AND EXISTS ${CMAKE_SOURCE_DIR}/docs)
-    add_subdirectory(docs)
-endif()
-
 # Package configuration
 include(CMakePackageConfigHelpers)
 configure_package_config_file(

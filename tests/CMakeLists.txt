@@ -26,7 +26,6 @@ else()
             ${PROJECT_NAME}_lib
     )
 endif()
-)
 
 # Set test properties
 set_target_properties(run_tests PROPERTIES

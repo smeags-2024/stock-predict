@@ -1138,4 +1138,4 @@ void RealTimeUpdater::updateData() {
 }
 
 #include "main_window.moc"
-#endif // QT_AVAILABLE
+#endif  // QT_AVAILABLE

@@ -292,4 +292,4 @@ class RealTimeUpdater : public QObject {
     QMutex m_mutex;
     bool m_isRunning;
 };
-#endif // QT_AVAILABLE
+#endif  // QT_AVAILABLE

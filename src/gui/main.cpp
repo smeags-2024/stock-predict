@@ -136,4 +136,4 @@ int main(int argc, char *argv[]) {
 
     return app.exec();
 }
-#endif // QT_AVAILABLE
+#endif  // QT_AVAILABLE

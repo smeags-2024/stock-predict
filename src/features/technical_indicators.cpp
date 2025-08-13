@@ -218,7 +218,8 @@ std::vector<double> TechnicalIndicators::williams_r(const std::vector<double>& h
 }
 
 // Feature Engineer Implementation
-std::vector<std::vector<double>> FeatureEngineer::extract_features(const std::vector<MarketData>& data) {
+std::vector<std::vector<double>> FeatureEngineer::extract_features(
+    const std::vector<MarketData>& data) {
     std::vector<std::vector<double>> features;
 
     if (data.empty()) return features;
@@ -275,35 +276,37 @@ std::vector<std::vector<double>> FeatureEngineer::extract_features(const std::ve
     std::vector<double> volume_sma = TechnicalIndicators::simple_moving_average(volumes, 20);
 
     // Create feature matrix - each row is one time point's features
-    for (size_t i = 20; i < data.size(); ++i) {  // Start from index 20 to have enough data for indicators
+    for (size_t i = 20; i < data.size();
+         ++i) {  // Start from index 20 to have enough data for indicators
         std::vector<double> feature_row;
-        
+
         // Price features
         if (i > 0) {
-            feature_row.push_back((closes[i] - closes[i-1]) / closes[i-1]);  // Returns
-            feature_row.push_back((highs[i] - lows[i]) / closes[i]);         // Volatility
-            feature_row.push_back(volumes[i] / volume_sma[i]);               // Volume ratio
+            feature_row.push_back((closes[i] - closes[i - 1]) / closes[i - 1]);  // Returns
+            feature_row.push_back((highs[i] - lows[i]) / closes[i]);             // Volatility
+            feature_row.push_back(volumes[i] / volume_sma[i]);                   // Volume ratio
         }
-        
+
         // Technical indicators
         if (i < sma20.size()) feature_row.push_back(sma20[i]);
         if (i < ema12.size()) feature_row.push_back(ema12[i]);
         if (i < rsi.size()) feature_row.push_back(rsi[i]);
-        
+
         features.push_back(feature_row);
     }
 
     return features;
 }
 
-std::vector<std::vector<double>> FeatureEngineer::normalize_features(const std::vector<std::vector<double>>& features) {
+std::vector<std::vector<double>> FeatureEngineer::normalize_features(
+    const std::vector<std::vector<double>>& features) {
     if (features.empty()) return {};
 
     if (features[0].empty()) return features;
-    
+
     size_t num_features = features[0].size();
     std::vector<std::vector<double>> normalized(features.size(), std::vector<double>(num_features));
-    
+
     // Normalize each feature column independently
     for (size_t feature_idx = 0; feature_idx < num_features; ++feature_idx) {
         // Calculate mean for this feature
@@ -312,7 +315,7 @@ std::vector<std::vector<double>> FeatureEngineer::normalize_features(const std::
             mean += features[sample_idx][feature_idx];
         }
         mean /= features.size();
-        
+
         // Calculate standard deviation
         double variance = 0.0;
         for (size_t sample_idx = 0; sample_idx < features.size(); ++sample_idx) {
@@ -321,11 +324,11 @@ std::vector<std::vector<double>> FeatureEngineer::normalize_features(const std::
         }
         variance /= features.size();
         double std_dev = std::sqrt(variance);
-        
+
         // Normalize this feature across all samples
         for (size_t sample_idx = 0; sample_idx < features.size(); ++sample_idx) {
-            normalized[sample_idx][feature_idx] = std_dev > 0 ? 
-                (features[sample_idx][feature_idx] - mean) / std_dev : 0.0;
+            normalized[sample_idx][feature_idx] =
+                std_dev > 0 ? (features[sample_idx][feature_idx] - mean) / std_dev : 0.0;
         }
     }
 

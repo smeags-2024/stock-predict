@@ -222,12 +222,12 @@ double RiskManager::covariance(const std::vector<double>& x, const std::vector<d
 
 // Portfolio Optimizer Implementation
 Portfolio PortfolioOptimizer::optimize_portfolio(const std::vector<std::vector<double>>& returns,
-                                                  const std::vector<std::string>& asset_names,
-                                                  double risk_free_rate,
-                                                  std::optional<double> target_return) {
+                                                 const std::vector<std::string>& asset_names,
+                                                 double risk_free_rate,
+                                                 std::optional<double> target_return) {
     Portfolio portfolio;
     portfolio.asset_names = asset_names;
-    
+
     size_t n_assets = returns.size();
     if (n_assets == 0 || n_assets != asset_names.size()) {
         return portfolio;
@@ -253,29 +253,31 @@ Portfolio PortfolioOptimizer::optimize_portfolio(const std::vector<std::vector<d
     // Calculate performance metrics
     if (!portfolio_returns.empty()) {
         portfolio.expected_return = RiskManager::mean(portfolio_returns) * 252.0;  // Annualized
-        portfolio.volatility = RiskManager::standard_deviation(portfolio_returns) * std::sqrt(252.0);
-        portfolio.sharpe_ratio = portfolio.volatility > 0 ? 
-            (portfolio.expected_return - risk_free_rate) / portfolio.volatility : 0.0;
+        portfolio.volatility =
+            RiskManager::standard_deviation(portfolio_returns) * std::sqrt(252.0);
+        portfolio.sharpe_ratio =
+            portfolio.volatility > 0
+                ? (portfolio.expected_return - risk_free_rate) / portfolio.volatility
+                : 0.0;
     }
 
-    std::cout << "Portfolio optimization: Equal weights assigned to " << n_assets << " assets" << std::endl;
+    std::cout << "Portfolio optimization: Equal weights assigned to " << n_assets << " assets"
+              << std::endl;
     return portfolio;
 }
 
 std::vector<Portfolio> PortfolioOptimizer::efficient_frontier(
-    const std::vector<std::vector<double>>& returns,
-    const std::vector<std::string>& asset_names, 
+    const std::vector<std::vector<double>>& returns, const std::vector<std::string>& asset_names,
     int num_points) {
-    
     std::vector<Portfolio> frontier;
-    
+
     // For simplicity, create multiple equal-weight portfolios
     // In practice, this would involve optimization across different target returns
     for (int i = 0; i < num_points; ++i) {
         Portfolio portfolio = optimize_portfolio(returns, asset_names);
         frontier.push_back(portfolio);
     }
-    
+
     return frontier;
 }
 

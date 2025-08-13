@@ -127,4 +127,4 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 }
-#endif // QT_AVAILABLE
+#endif  // QT_AVAILABLE

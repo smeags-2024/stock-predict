@@ -692,4 +692,4 @@ void AboutDialog::setupUI() {
 
 }  // namespace gui
 }  // namespace stock_predict
-#endif // QT_AVAILABLE
+#endif  // QT_AVAILABLE

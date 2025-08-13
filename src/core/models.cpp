@@ -30,66 +30,67 @@ bool SimplePredictor::save_model(const std::string& model_path) const {
 
 bool SimplePredictor::train(const std::vector<MarketData>& data, int epochs) {
     if (data.size() < 2) return false;
-    
+
     std::cout << "Training simple predictor on " << data.size() << " data points..." << std::endl;
-    
+
     // Simple linear regression training
     std::vector<std::vector<double>> features;
     std::vector<double> targets;
-    
+
     // Extract features and targets
     for (size_t i = 1; i < data.size(); ++i) {
         // Simple features: previous price, volume ratio, volatility
         std::vector<double> feature_vec;
-        feature_vec.push_back(data[i-1].close);
-        feature_vec.push_back(data[i-1].volume / 1000000.0); // Scale volume
-        feature_vec.push_back((data[i-1].high - data[i-1].low) / data[i-1].close); // Volatility
-        
+        feature_vec.push_back(data[i - 1].close);
+        feature_vec.push_back(data[i - 1].volume / 1000000.0);  // Scale volume
+        feature_vec.push_back((data[i - 1].high - data[i - 1].low) /
+                              data[i - 1].close);  // Volatility
+
         features.push_back(feature_vec);
         targets.push_back(data[i].close);
     }
-    
+
     if (features.empty()) return false;
-    
+
     // Simple gradient descent
     double learning_rate = 0.001;
     weights_.assign(features[0].size(), 0.0);
     bias_ = 0.0;
-    
+
     for (int epoch = 0; epoch < epochs; ++epoch) {
         double total_loss = 0.0;
-        
+
         for (size_t i = 0; i < features.size(); ++i) {
             // Forward pass
             double prediction = bias_;
             for (size_t j = 0; j < weights_.size() && j < features[i].size(); ++j) {
                 prediction += weights_[j] * features[i][j];
             }
-            
+
             // Loss
             double error = prediction - targets[i];
             total_loss += error * error;
-            
+
             // Backward pass
             bias_ -= learning_rate * error;
             for (size_t j = 0; j < weights_.size() && j < features[i].size(); ++j) {
                 weights_[j] -= learning_rate * error * features[i][j];
             }
         }
-        
+
         if (epoch % 20 == 0) {
             double mse = total_loss / features.size();
             std::cout << "Epoch " << epoch << ", MSE: " << mse << std::endl;
         }
     }
-    
+
     trained_ = true;
-    
+
     // Update metrics
     metrics_.clear();
     metrics_.push_back({"accuracy", 0.75});
     metrics_.push_back({"loss", 0.25});
-    
+
     std::cout << "Training completed!" << std::endl;
     return true;
 }
@@ -97,70 +98,72 @@ bool SimplePredictor::train(const std::vector<MarketData>& data, int epochs) {
 PredictionResult SimplePredictor::predict_next_day(const std::vector<MarketData>& recent_data) {
     PredictionResult result;
     result.timestamp = std::chrono::system_clock::now();
-    
+
     if (!trained_ || recent_data.empty()) {
         result.price = 0.0;
         result.confidence = 0.0;
         return result;
     }
-    
+
     // Use last data point for prediction
     const auto& last_data = recent_data.back();
-    
+
     // Simple features
     std::vector<double> features;
     features.push_back(last_data.close);
     features.push_back(last_data.volume / 1000000.0);
     features.push_back((last_data.high - last_data.low) / last_data.close);
-    
+
     // Predict
     double prediction = bias_;
     for (size_t i = 0; i < weights_.size() && i < features.size(); ++i) {
         prediction += weights_[i] * features[i];
     }
-    
+
     result.price = prediction;
-    result.confidence = 0.75; // Mock confidence
-    result.volatility = 0.02; // Mock volatility
-    result.value_at_risk_95 = prediction * 0.05; // Mock VaR
-    result.expected_return = 0.08; // Mock expected return
-    result.sharpe_ratio = 1.2; // Mock Sharpe ratio
-    
+    result.confidence = 0.75;                     // Mock confidence
+    result.volatility = 0.02;                     // Mock volatility
+    result.value_at_risk_95 = prediction * 0.05;  // Mock VaR
+    result.expected_return = 0.08;                // Mock expected return
+    result.sharpe_ratio = 1.2;                    // Mock Sharpe ratio
+
     return result;
 }
 
 std::vector<PredictionResult> SimplePredictor::predict_multi_day(
     const std::vector<MarketData>& recent_data, int days) {
-    
     std::vector<PredictionResult> results;
-    
+
     if (days <= 0 || recent_data.empty()) return results;
-    
+
     // Start with single day prediction
     auto current_data = recent_data;
-    
+
     for (int day = 1; day <= days; ++day) {
         auto prediction = predict_next_day(current_data);
-        
+
         // Adjust prediction for future days (add some uncertainty)
-        prediction.price *= (1.0 + 0.01 * day * (rand() % 3 - 1)); // Small random walk
-        prediction.confidence *= std::max(0.1, 1.0 - 0.1 * day); // Decrease confidence
-        
+        prediction.price *= (1.0 + 0.01 * day * (rand() % 3 - 1));  // Small random walk
+        prediction.confidence *= std::max(0.1, 1.0 - 0.1 * day);    // Decrease confidence
+
         results.push_back(prediction);
-        
+
         // Create mock next data point for next iteration
         if (day < days && !current_data.empty()) {
             MarketData next_point = current_data.back();
             next_point.timestamp += std::chrono::hours(24);
             next_point.close = prediction.price;
-            next_point.open = prediction.price * (0.98 + 0.04 * static_cast<double>(rand()) / RAND_MAX);
-            next_point.high = prediction.price * (1.0 + 0.02 * static_cast<double>(rand()) / RAND_MAX);
-            next_point.low = prediction.price * (1.0 - 0.02 * static_cast<double>(rand()) / RAND_MAX);
-            
+            next_point.open =
+                prediction.price * (0.98 + 0.04 * static_cast<double>(rand()) / RAND_MAX);
+            next_point.high =
+                prediction.price * (1.0 + 0.02 * static_cast<double>(rand()) / RAND_MAX);
+            next_point.low =
+                prediction.price * (1.0 - 0.02 * static_cast<double>(rand()) / RAND_MAX);
+
             current_data.push_back(next_point);
         }
     }
-    
+
     return results;
 }
 
@@ -203,7 +206,7 @@ std::vector<PredictionResult> LSTMPredictor::predict_multi_day(
 }
 
 std::vector<std::pair<std::string, double>> LSTMPredictor::get_performance_metrics() const {
-    return {{"status", 0.0}}; // Indicates PyTorch not available
+    return {{"status", 0.0}};  // Indicates PyTorch not available
 }
 
 // Transformer Predictor (Placeholder)
@@ -223,11 +226,13 @@ bool TransformerPredictor::save_model(const std::string& model_path) const {
 }
 
 bool TransformerPredictor::train(const std::vector<MarketData>& data, int epochs) {
-    std::cout << "Transformer training: Not implemented, falling back to SimplePredictor" << std::endl;
+    std::cout << "Transformer training: Not implemented, falling back to SimplePredictor"
+              << std::endl;
     return false;
 }
 
-PredictionResult TransformerPredictor::predict_next_day(const std::vector<MarketData>& recent_data) {
+PredictionResult TransformerPredictor::predict_next_day(
+    const std::vector<MarketData>& recent_data) {
     std::cout << "Transformer prediction: Not implemented" << std::endl;
     PredictionResult result;
     result.timestamp = std::chrono::system_clock::now();
@@ -282,9 +287,9 @@ std::vector<std::pair<std::string, double>> EnsemblePredictor::get_performance_m
     return {{"status", 0.0}};
 }
 
-} // namespace stock_predict
+}  // namespace stock_predict
 
-    return true;
+return true;
 }
 
 PredictionResult LSTMPredictor::predict_next_day(const std::vector<MarketData>& recent_data) {

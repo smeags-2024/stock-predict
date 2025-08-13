@@ -10,18 +10,19 @@ namespace stock_predict {
  * @brief Transformer-based predictor (placeholder)
  */
 class TransformerPredictor : public IStockPredictor {
-public:
+   public:
     explicit TransformerPredictor(const std::string& symbol, const PredictorConfig& config = {});
     ~TransformerPredictor() override = default;
 
     bool load_model(const std::string& model_path) override;
     bool train(const std::vector<MarketData>& data, int epochs = 100) override;
     PredictionResult predict_next_day(const std::vector<MarketData>& recent_data) override;
-    std::vector<PredictionResult> predict_multi_day(const std::vector<MarketData>& recent_data, int days) override;
+    std::vector<PredictionResult> predict_multi_day(const std::vector<MarketData>& recent_data,
+                                                    int days) override;
     std::vector<std::pair<std::string, double>> get_performance_metrics() const override;
     bool save_model(const std::string& model_path) const override;
 
-private:
+   private:
     std::string symbol_;
     PredictorConfig config_;
 };
@@ -30,26 +31,26 @@ private:
  * @brief Ensemble predictor (placeholder)
  */
 class EnsemblePredictor : public IStockPredictor {
-public:
+   public:
     explicit EnsemblePredictor(const std::string& symbol, const PredictorConfig& config = {});
     ~EnsemblePredictor() override = default;
 
     bool load_model(const std::string& model_path) override;
     bool train(const std::vector<MarketData>& data, int epochs = 100) override;
     PredictionResult predict_next_day(const std::vector<MarketData>& recent_data) override;
-    std::vector<PredictionResult> predict_multi_day(const std::vector<MarketData>& recent_data, int days) override;
+    std::vector<PredictionResult> predict_multi_day(const std::vector<MarketData>& recent_data,
+                                                    int days) override;
     std::vector<std::pair<std::string, double>> get_performance_metrics() const override;
     bool save_model(const std::string& model_path) const override;
 
-private:
+   private:
     std::string symbol_;
     PredictorConfig config_;
 };
 
-} // namespace stock_predict**
- * @brief Simple mathematical predictor (fallback when PyTorch unavailable)
- */
-class SimplePredictor : public IStockPredictor {
+}  // namespace stock_predict**
+*@brief Simple mathematical predictor(fallback when PyTorch unavailable) * /
+    class SimplePredictor : public IStockPredictor {
    public:
     explicit SimplePredictor(const std::string& symbol, const PredictorConfig& config = {});
     ~SimplePredictor() override = default;
@@ -97,16 +98,17 @@ class LSTMPredictor : public IStockPredictor {
     bool trained_;
 };
 
-    // Helper methods
-    torch::Tensor preprocess_data(const std::vector<MarketData>& data);
-    std::vector<MarketData> normalize_data(const std::vector<MarketData>& data);
-    torch::Tensor create_sequences(const torch::Tensor& data, int seq_length);
-    PredictionResult postprocess_prediction(const torch::Tensor& prediction,
-                                            const MarketData& last_data);
-    double calculate_confidence(const torch::Tensor& prediction,
-                                const std::vector<MarketData>& recent_data);
-    void update_metrics(double loss, double accuracy);
-};
+// Helper methods
+torch::Tensor preprocess_data(const std::vector<MarketData>& data);
+std::vector<MarketData> normalize_data(const std::vector<MarketData>& data);
+torch::Tensor create_sequences(const torch::Tensor& data, int seq_length);
+PredictionResult postprocess_prediction(const torch::Tensor& prediction,
+                                        const MarketData& last_data);
+double calculate_confidence(const torch::Tensor& prediction,
+                            const std::vector<MarketData>& recent_data);
+void update_metrics(double loss, double accuracy);
+}
+;
 
 /**
  * @brief Transformer-based stock price predictor

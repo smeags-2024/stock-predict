@@ -5,6 +5,11 @@ project(StockPredict VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Build options
+option(BUILD_DOCS "Build documentation" OFF)
+option(BUILD_TESTS "Build tests" ON)
+option(BUILD_BENCHMARKS "Build benchmarks" OFF)
+
 # Find required packages
 find_package(PkgConfig REQUIRED)
 
@@ -12,15 +17,15 @@ find_package(PkgConfig REQUIRED)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake OPTIONAL)
 if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
     conan_basic_setup(TARGETS)
-    # Use Conan targets directly
-    set(EIGEN3_FOUND TRUE)
-    set(nlohmann_json_FOUND TRUE) 
-    set(spdlog_FOUND TRUE)
+    message(STATUS "Using Conan dependencies")
+    # Conan 1.x creates targets like CONAN_PKG::eigen, CONAN_PKG::nlohmann_json, etc.
 else()
+    message(STATUS "Conan not found, using system packages")
     # Fallback to system packages if Conan not available
     find_package(Eigen3 REQUIRED)
     find_package(nlohmann_json REQUIRED)
     find_package(spdlog REQUIRED)
+    find_package(GTest REQUIRED)
 endif()
 # find_package(fmt REQUIRED)  # Temporarily disabled for testing
 
@@ -164,14 +169,24 @@ else()
 endif()
 
 # Link libraries
-# Link core libraries (always required)
-target_link_libraries(${PROJECT_NAME}_lib
-    PUBLIC
-        Eigen3::Eigen
-        nlohmann_json::nlohmann_json
-        spdlog::spdlog
-        # fmt::fmt  # Temporarily disabled for testing
-)
+# Link core libraries - use different targets based on Conan vs system
+if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    # Conan 1.x target names
+    target_link_libraries(${PROJECT_NAME}_lib
+        PUBLIC
+            CONAN_PKG::eigen
+            CONAN_PKG::nlohmann_json
+            CONAN_PKG::spdlog
+    )
+else()
+    # System package target names
+    target_link_libraries(${PROJECT_NAME}_lib
+        PUBLIC
+            Eigen3::Eigen
+            nlohmann_json::nlohmann_json
+            spdlog::spdlog
+    )
+endif()
 
 # Link optional advanced libraries
 if(Torch_FOUND)
@@ -291,3 +306,25 @@ install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/StockPredictConfigVersion.cmake"
     DESTINATION lib/cmake/StockPredict
 )
+
+# Documentation with Doxygen
+if(BUILD_DOCS)
+    find_package(Doxygen REQUIRED)
+    
+    # Configure Doxygen
+    set(DOXYGEN_PROJECT_NAME "Stock Prediction System")
+    set(DOXYGEN_PROJECT_VERSION ${PROJECT_VERSION})
+    set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/docs")
+    set(DOXYGEN_INPUT "${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src")
+    set(DOXYGEN_RECURSIVE YES)
+    set(DOXYGEN_EXTRACT_ALL YES)
+    set(DOXYGEN_GENERATE_HTML YES)
+    set(DOXYGEN_HTML_OUTPUT "html")
+    
+    # Create docs target
+    doxygen_add_docs(docs
+        ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_SOURCE_DIR}/src
+        COMMENT "Generate documentation"
+    )
+endif()

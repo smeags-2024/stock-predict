@@ -67,10 +67,14 @@ jobs:
         pip install conan
         conan profile detect --force
         
-    - name: Show Conan profile (for debugging)
+    - name: Configure Conan for C++20
       run: |
+        # Ensure we have a proper profile and set C++20
         conan profile show
-    
+        echo "compiler.cppstd=20" >> ~/.conan2/profiles/default
+        echo "Updated profile:"
+        conan profile show
+        
     - name: Install dependencies with Conan
       run: |
         mkdir -p build
@@ -353,7 +357,7 @@ jobs:
       run: |
         pip install conan
         conan profile detect --force
-        conan profile show
+        echo "compiler.cppstd=20" >> ~/.conan2/profiles/default
     
     - name: Install dependencies with Conan
       run: |

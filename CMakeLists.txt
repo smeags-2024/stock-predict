@@ -11,11 +11,11 @@ find_package(PkgConfig REQUIRED)
 # Conan integration
 include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake OPTIONAL)
 
-# Core required packages (simple dependencies)
+# Core required packages (minimal set for testing)
 find_package(Eigen3 REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(spdlog REQUIRED)
-find_package(fmt REQUIRED)
+# find_package(fmt REQUIRED)  # Temporarily disabled for testing
 
 # Optional advanced packages (complex dependencies)
 find_package(Torch QUIET)
@@ -157,7 +157,7 @@ target_link_libraries(${PROJECT_NAME}_lib
         Eigen3::Eigen
         nlohmann_json::nlohmann_json
         spdlog::spdlog
-        fmt::fmt
+        # fmt::fmt  # Temporarily disabled for testing
 )
 
 # Link optional advanced libraries

@@ -200,9 +200,16 @@ install_system_deps() {
 build_project() {
     log_info "Configuring and building project..."
     
-    # Create build directory
-    mkdir -p "$BUILD_DIR"
-    cd "$BUILD_DIR"
+    # Get the project root directory (parent of scripts)
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+    PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+    
+    log_info "Project root: $PROJECT_ROOT"
+    log_info "Build directory: $PROJECT_ROOT/$BUILD_DIR"
+    
+    # Create build directory from project root
+    mkdir -p "$PROJECT_ROOT/$BUILD_DIR"
+    cd "$PROJECT_ROOT/$BUILD_DIR"
     
     # Configure CMake options
     CMAKE_OPTIONS=(
@@ -223,7 +230,8 @@ build_project() {
     log_info "Building with $JOBS parallel jobs..."
     cmake --build . --config "$BUILD_TYPE" -j "$JOBS"
     
-    cd ..
+    # Return to project root
+    cd "$PROJECT_ROOT"
     log_success "Project built successfully"
 }
 
@@ -231,14 +239,14 @@ build_project() {
 run_tests() {
     if [[ "$ENABLE_TESTING" == true ]]; then
         log_info "Running tests..."
-        cd "$BUILD_DIR"
+        cd "$PROJECT_ROOT/$BUILD_DIR"
         if command -v ctest &> /dev/null; then
             ctest --output-on-failure
             log_success "Tests completed"
         else
             log_warning "CTest not available, skipping tests"
         fi
-        cd ..
+        cd "$PROJECT_ROOT"
     else
         log_info "Testing disabled, skipping tests"
     fi
@@ -248,14 +256,14 @@ run_tests() {
 check_artifacts() {
     log_info "Checking build artifacts..."
     
-    if [[ -f "$BUILD_DIR/StockPredict" ]]; then
-        log_success "Main executable created: $BUILD_DIR/StockPredict"
+    if [[ -f "$PROJECT_ROOT/$BUILD_DIR/StockPredict" ]]; then
+        log_success "Main executable created: $PROJECT_ROOT/$BUILD_DIR/StockPredict"
     else
         log_error "Main executable not found!"
         exit 1
     fi
     
-    if [[ -f "$BUILD_DIR/libStockPredict_lib.a" ]] || [[ -f "$BUILD_DIR/libStockPredict_lib.so" ]]; then
+    if [[ -f "$PROJECT_ROOT/$BUILD_DIR/libStockPredict_lib.a" ]] || [[ -f "$PROJECT_ROOT/$BUILD_DIR/libStockPredict_lib.so" ]]; then
         log_success "Library created successfully"
     else
         log_warning "Library not found (this might be expected)"
@@ -268,10 +276,10 @@ show_next_steps() {
     echo
     log_info "Next steps:"
     echo "  1. Run the application:"
-    echo "     cd $BUILD_DIR && ./StockPredict --help"
+    echo "     cd $PROJECT_ROOT/$BUILD_DIR && ./StockPredict --help"
     echo
     echo "  2. Run tests (if enabled):"
-    echo "     cd $BUILD_DIR && ctest"
+    echo "     cd $PROJECT_ROOT/$BUILD_DIR && ctest"
     echo
     log_info "The project is now ready for development and testing."
     log_info "No Python dependencies required - this is a pure C++ project."

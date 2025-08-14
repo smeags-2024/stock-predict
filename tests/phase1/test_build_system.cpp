@@ -45,7 +45,8 @@ TEST_F(BuildSystemTest, CMakeConfigurationValidation) {
 // Test T1.1.2: System dependency resolution
 TEST_F(BuildSystemTest, SystemDependencyResolution) {
     auto cmake_file = project_root_ / "CMakeLists.txt";
-    EXPECT_TRUE(std::filesystem::exists(cmake_file)) << "CMakeLists.txt should exist in project root";
+    EXPECT_TRUE(std::filesystem::exists(cmake_file))
+        << "CMakeLists.txt should exist in project root";
 
     std::ifstream file(cmake_file);
     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());

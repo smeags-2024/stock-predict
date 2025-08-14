@@ -61,7 +61,7 @@ bool SimplePredictor::load_model(const std::string& model_path) {
 }
 
 bool SimplePredictor::train(const std::vector<MarketData>& training_data, int epochs) {
-    if (training_data.size() < config_.sequence_length + 1) {
+    if (training_data.size() < static_cast<size_t>(config_.sequence_length + 1)) {
         std::cerr << "Not enough training data. Need at least " << config_.sequence_length + 1 << " samples." << std::endl;
         return false;
     }
@@ -74,7 +74,7 @@ bool SimplePredictor::train(const std::vector<MarketData>& training_data, int ep
         Eigen::VectorXd targets(features.cols());
         
         // Extract target prices
-        for (size_t i = 0; i < features.cols(); ++i) {
+        for (Eigen::Index i = 0; i < features.cols(); ++i) {
             targets(i) = training_data[i + config_.sequence_length].close;
         }
         

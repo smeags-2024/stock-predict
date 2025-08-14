@@ -107,6 +107,7 @@ AlphaVantageDataSource::AlphaVantageDataSource(const std::string& api_key) : api
 std::vector<MarketData> AlphaVantageDataSource::get_historical_data(
     const std::string& symbol, const std::chrono::system_clock::time_point& start_date,
     const std::chrono::system_clock::time_point& end_date) {
+    (void)symbol; (void)start_date; (void)end_date;  // Suppress unused warnings
     // TODO: Implement actual API call
     std::cout << "AlphaVantage API call would be made here for " << symbol << std::endl;
     return {};  // Return empty for now
@@ -123,6 +124,7 @@ bool AlphaVantageDataSource::is_available() const {
 }
 
 std::string AlphaVantageDataSource::make_request(const std::string& url) {
+    (void)url;  // Suppress unused warning
     // TODO: Implement HTTP request
     return "";
 }
@@ -131,6 +133,7 @@ std::string AlphaVantageDataSource::make_request(const std::string& url) {
 std::vector<MarketData> YahooFinanceDataSource::get_historical_data(
     const std::string& symbol, const std::chrono::system_clock::time_point& start_date,
     const std::chrono::system_clock::time_point& end_date) {
+    (void)symbol; (void)start_date; (void)end_date;  // Suppress unused warnings
     // TODO: Implement actual API call
     std::cout << "Yahoo Finance API call would be made here for " << symbol << std::endl;
     return {};
@@ -147,6 +150,7 @@ bool YahooFinanceDataSource::is_available() const {
 }
 
 std::string YahooFinanceDataSource::make_request(const std::string& url) {
+    (void)url;  // Suppress unused warning
     // TODO: Implement HTTP request
     return "";
 }
@@ -155,6 +159,7 @@ std::string YahooFinanceDataSource::make_request(const std::string& url) {
 DataManager::DataManager() = default;
 
 void DataManager::add_data_source(std::unique_ptr<IDataSource> source, int priority) {
+    (void)source; (void)priority;  // Suppress unused warnings
     // TODO: Implement priority-based data source management
     std::cout << "Added data source with priority " << priority << std::endl;
 }
@@ -162,23 +167,27 @@ void DataManager::add_data_source(std::unique_ptr<IDataSource> source, int prior
 std::vector<MarketData> DataManager::get_historical_data(
     const std::string& symbol, const std::chrono::system_clock::time_point& start_date,
     const std::chrono::system_clock::time_point& end_date) {
+    (void)symbol; (void)start_date; (void)end_date;  // Suppress unused warnings
     // TODO: Implement multi-source data retrieval
     return {};
 }
 
 std::optional<MarketData> DataManager::get_real_time_data(const std::string& symbol) {
+    (void)symbol;  // Suppress unused warning
     // TODO: Implement multi-source real-time data retrieval
     return std::nullopt;
 }
 
 void DataManager::cache_data(const std::string& symbol, const std::vector<MarketData>& data,
                              const std::string& cache_path) {
+    (void)cache_path;  // Suppress unused warning
     // TODO: Implement data caching
     std::cout << "Caching " << data.size() << " data points for " << symbol << std::endl;
 }
 
 std::vector<MarketData> DataManager::load_cached_data(const std::string& symbol,
                                                       const std::string& cache_path) {
+    (void)cache_path;  // Suppress unused warning
     // TODO: Implement cache loading
     std::cout << "Loading cached data for " << symbol << std::endl;
     return {};

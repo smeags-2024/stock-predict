@@ -63,14 +63,15 @@ while [[ $# -gt 0 ]]; do
             ;;
         --help)
             echo "Usage: $0 [OPTIONS]"
+            echo ""
             echo "Options:"
-            echo "  --build-type TYPE    Build type (Debug/Release) [default: Release]"
-            echo "  --no-deps           Skip dependency installation"
-            echo "  --cuda              Enable CUDA support"
-            echo "  --no-tests          Skip testing"
-            echo "  --jobs NUM          Number of parallel jobs [default: nproc]"
-            echo "  --build-dir DIR     Build directory [default: build]"
-            echo "  --help              Show this help message"
+            echo "  --build-type TYPE    Build type (Release, Debug, RelWithDebInfo) [default: Release]"
+            echo "  --no-deps            Skip installing system dependencies"
+            echo "  --cuda               Enable CUDA support"
+            echo "  --no-tests           Disable building tests"
+            echo "  --jobs N             Number of parallel jobs [default: $(nproc)]"
+            echo "  --build-dir DIR      Build directory [default: build]"
+            echo "  --help               Show this help message"
             exit 0
             ;;
         *)
@@ -80,57 +81,47 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-log_info "Starting Stock Predict build setup..."
+log_info "Starting Stock Predict C++ build setup..."
 log_info "Build type: $BUILD_TYPE"
 log_info "Parallel jobs: $JOBS"
 log_info "Build directory: $BUILD_DIR"
 
-# Check if we're on a supported system
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    DISTRO=$(lsb_release -si 2>/dev/null || echo "Unknown")
+# Detect Linux distribution
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    DISTRO=$ID
     log_info "Detected Linux distribution: $DISTRO"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    log_info "Detected macOS"
-    DISTRO="macOS"
 else
-    log_error "Unsupported operating system: $OSTYPE"
-    exit 1
+    DISTRO="unknown"
+    log_warning "Cannot detect Linux distribution"
 fi
 
 # Function to install system dependencies
 install_system_deps() {
-    log_info "Installing system dependencies..."
+    log_info "Installing C++ system dependencies..."
     
-    if [[ "$DISTRO" == "Ubuntu" ]] || [[ "$DISTRO" == "Debian" ]]; then
+    if [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]] || [[ "$DISTRO" == "kali" ]]; then
         sudo apt-get update
         sudo apt-get install -y \
             build-essential \
             cmake \
             ninja-build \
             pkg-config \
-            python3 \
-            python3-pip \
-            python3-venv \
             git \
             wget \
             curl \
             libssl-dev \
             libblas-dev \
             liblapack-dev \
-            libhdf5-dev \
             libeigen3-dev \
-            qt6-base-dev \
-            qt6-charts-dev \
-            libgl1-mesa-dev \
-            xvfb \
-            libxkbcommon-x11-0 \
-            libxcb-icccm4 \
-            libxcb-image0 \
-            libxcb-keysyms1 \
-            libxcb-randr0 \
-            libxcb-render-util0 \
-            libxcb-xinerama0 \
-            libxcb-xfixes0
+            nlohmann-json3-dev \
+            libspdlog-dev \
+            libfmt-dev \
+            libgtest-dev \
+            libgmock-dev
+        
+        # Optional Qt6 for GUI (install if available)
+        sudo apt-get install -y qt6-base-dev qt6-charts-dev || log_warning "Qt6 not available, GUI will be disabled"
         
         # Install CUDA if requested
         if [[ "$ENABLE_CUDA" == true ]]; then
@@ -141,138 +132,99 @@ install_system_deps() {
             sudo apt-get -y install cuda-toolkit-11-8
         fi
         
-    elif [[ "$DISTRO" == "Fedora" ]] || [[ "$DISTRO" == "CentOS" ]] || [[ "$DISTRO" == "RedHat" ]]; then
+    elif [[ "$DISTRO" == "fedora" ]] || [[ "$DISTRO" == "centos" ]] || [[ "$DISTRO" == "rhel" ]]; then
         sudo dnf update -y
         sudo dnf groupinstall -y "Development Tools"
         sudo dnf install -y \
             cmake \
             ninja-build \
-            python3 \
-            python3-pip \
+            pkg-config \
             git \
             wget \
             curl \
             openssl-devel \
             blas-devel \
             lapack-devel \
-            hdf5-devel \
             eigen3-devel \
-            qt6-qtbase-devel \
-            qt6-qtcharts-devel \
-            mesa-libGL-devel \
-            xorg-x11-server-Xvfb
+            json-devel \
+            spdlog-devel \
+            fmt-devel \
+            gtest-devel \
+            gmock-devel
             
-    elif [[ "$DISTRO" == "macOS" ]]; then
-        # Check if Homebrew is installed
-        if ! command -v brew &> /dev/null; then
-            log_error "Homebrew is required on macOS. Please install it first:"
-            log_error "  /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
-            exit 1
-        fi
+        # Optional Qt6
+        sudo dnf install -y qt6-qtbase-devel qt6-qtcharts-devel || log_warning "Qt6 not available, GUI will be disabled"
         
-        brew update
-        brew install \
+    elif [[ "$DISTRO" == "arch" ]] || [[ "$DISTRO" == "manjaro" ]]; then
+        sudo pacman -Syu --noconfirm
+        sudo pacman -S --noconfirm \
+            base-devel \
             cmake \
             ninja \
-            python3 \
             pkg-config \
+            git \
+            wget \
+            curl \
             openssl \
-            hdf5 \
-            eigen
+            blas \
+            lapack \
+            eigen \
+            nlohmann-json \
+            spdlog \
+            fmt \
+            gtest \
+            gmock
+            
+        # Optional Qt6
+        sudo pacman -S --noconfirm qt6-base qt6-charts || log_warning "Qt6 not available, GUI will be disabled"
+        
     else
         log_warning "Unknown distribution. Please install dependencies manually:"
         log_warning "  - C++20 compatible compiler (GCC 10+, Clang 12+)"
         log_warning "  - CMake 3.20+"
-        log_warning "  - Python 3.8+"
         log_warning "  - pkg-config"
         log_warning "  - OpenSSL development headers"
         log_warning "  - BLAS/LAPACK libraries"
-        log_warning "  - HDF5 development headers"
         log_warning "  - Eigen3 library"
-    fi
-}
-
-# Function to setup Python environment and install Conan
-setup_python_env() {
-    log_info "Setting up Python environment..."
-    
-    # Create virtual environment if it doesn't exist
-    if [[ ! -d "venv" ]]; then
-        python3 -m venv venv
+        log_warning "  - nlohmann-json library"
+        log_warning "  - spdlog library"
+        log_warning "  - fmt library"
+        log_warning "  - GoogleTest library (optional)"
+        log_warning "  - Qt6 development packages (optional for GUI)"
     fi
     
-    # Activate virtual environment
-    source venv/bin/activate
-    
-    # Upgrade pip
-    pip install --upgrade pip
-    
-    # Install Conan
-    log_info "Installing Conan package manager..."
-    pip install "conan>=2.0"
-    
-    # Setup Conan profile
-    conan profile detect --force
-    
-    log_success "Python environment setup complete"
-}
-
-# Function to install dependencies with Conan
-install_conan_deps() {
-    log_info "Installing C++ dependencies with Conan..."
-    
-    # Activate virtual environment
-    source venv/bin/activate
-    
-    # Create build directory
-    mkdir -p "$BUILD_DIR"
-    cd "$BUILD_DIR"
-    
-    # Configure Conan options
-    CONAN_OPTIONS=""
-    if [[ "$ENABLE_CUDA" == true ]]; then
-        CONAN_OPTIONS="$CONAN_OPTIONS -o libtorch/*:cuda=True"
-    fi
-    
-    # Install dependencies
-    conan install .. \
-        --build=missing \
-        -s build_type="$BUILD_TYPE" \
-        $CONAN_OPTIONS
-    
-    cd ..
-    log_success "Dependencies installed successfully"
+    log_success "System dependencies installation completed"
 }
 
 # Function to configure and build the project
 build_project() {
     log_info "Configuring and building project..."
     
+    # Create build directory
+    mkdir -p "$BUILD_DIR"
     cd "$BUILD_DIR"
     
-    # Configure with CMake
+    # Configure CMake options
     CMAKE_OPTIONS=(
         -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
-        -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
-        -G Ninja
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        -DBUILD_TESTS="$ENABLE_TESTING"
     )
-    
-    if [[ "$ENABLE_TESTING" == true ]]; then
-        CMAKE_OPTIONS+=(-DBUILD_TESTING=ON)
-    fi
     
     if [[ "$ENABLE_CUDA" == true ]]; then
         CMAKE_OPTIONS+=(-DENABLE_CUDA=ON)
     fi
     
-    cmake .. "${CMAKE_OPTIONS[@]}"
+    # Configure with CMake
+    log_info "Configuring with CMake..."
+    cmake "${CMAKE_OPTIONS[@]}" ..
     
     # Build
     log_info "Building with $JOBS parallel jobs..."
-    ninja -j"$JOBS"
+    cmake --build . --config "$BUILD_TYPE" -j "$JOBS"
     
     cd ..
-    log_success "Build completed successfully"
+    log_success "Project built successfully"
 }
 
 # Function to run tests
@@ -280,18 +232,15 @@ run_tests() {
     if [[ "$ENABLE_TESTING" == true ]]; then
         log_info "Running tests..."
         cd "$BUILD_DIR"
-        
-        # Run unit tests
-        if [[ -f "bin/run_tests" ]]; then
-            ./bin/run_tests
+        if command -v ctest &> /dev/null; then
+            ctest --output-on-failure
+            log_success "Tests completed"
         else
-            ctest --output-on-failure --parallel "$JOBS"
+            log_warning "CTest not available, skipping tests"
         fi
-        
         cd ..
-        log_success "All tests passed"
     else
-        log_info "Testing disabled"
+        log_info "Testing disabled, skipping tests"
     fi
 }
 
@@ -299,14 +248,14 @@ run_tests() {
 check_artifacts() {
     log_info "Checking build artifacts..."
     
-    if [[ -f "$BUILD_DIR/bin/StockPredict" ]]; then
-        log_success "Main executable created: $BUILD_DIR/bin/StockPredict"
+    if [[ -f "$BUILD_DIR/StockPredict" ]]; then
+        log_success "Main executable created: $BUILD_DIR/StockPredict"
     else
         log_error "Main executable not found!"
         exit 1
     fi
     
-    if [[ -f "$BUILD_DIR/lib/libStockPredict_lib.a" ]] || [[ -f "$BUILD_DIR/lib/libStockPredict_lib.so" ]]; then
+    if [[ -f "$BUILD_DIR/libStockPredict_lib.a" ]] || [[ -f "$BUILD_DIR/libStockPredict_lib.so" ]]; then
         log_success "Library created successfully"
     else
         log_warning "Library not found (this might be expected)"
@@ -315,22 +264,17 @@ check_artifacts() {
 
 # Function to display next steps
 show_next_steps() {
-    log_success "Setup completed successfully!"
+    log_success "C++ setup completed successfully!"
     echo
     log_info "Next steps:"
     echo "  1. Run the application:"
-    echo "     cd $BUILD_DIR && ./bin/StockPredict --help"
+    echo "     cd $BUILD_DIR && ./StockPredict --help"
     echo
     echo "  2. Run tests (if enabled):"
     echo "     cd $BUILD_DIR && ctest"
     echo
-    echo "  3. Run benchmarks:"
-    echo "     cd $BUILD_DIR && ./bin/run_benchmarks"
-    echo
-    echo "  4. Activate Python environment for development:"
-    echo "     source venv/bin/activate"
-    echo
-    log_info "For more information, see the README.md file"
+    log_info "The project is now ready for development and testing."
+    log_info "No Python dependencies required - this is a pure C++ project."
 }
 
 # Main execution
@@ -339,12 +283,6 @@ main() {
     if [[ "$INSTALL_DEPS" == true ]]; then
         install_system_deps
     fi
-    
-    # Setup Python environment
-    setup_python_env
-    
-    # Install Conan dependencies
-    install_conan_deps
     
     # Build project
     build_project

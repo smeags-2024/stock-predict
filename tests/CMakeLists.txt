@@ -1,7 +1,16 @@
 cmake_minimum_required(VERSION 3.20)
 
-# Find GTest
-find_package(GTest REQUIRED)
+# Find GTest - try system package first, then fallback to FetchContent
+find_package(GTest QUIET)
+if(NOT GTest_FOUND)
+    message(STATUS "GTest not found as system package, using FetchContent")
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/03597a01ee50a2a94298060058b1db0e9d01de69.zip
+    )
+    FetchContent_MakeAvailable(googletest)
+endif()
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
@@ -26,20 +35,19 @@ else()
     add_executable(run_tests ${CMAKE_CURRENT_BINARY_DIR}/minimal_test.cpp)
 endif()
 
-# Link libraries - use conditional Conan vs system targets
-if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-    # Conan 1.x target names
-    target_link_libraries(run_tests
-        PRIVATE
-            CONAN_PKG::gtest
-            ${PROJECT_NAME}_lib
-    )
-else()
-    # System package target names
+# Link libraries - use system packages only
+if(GTest_FOUND)
     target_link_libraries(run_tests
         PRIVATE
             GTest::gtest
             GTest::gtest_main
+            ${PROJECT_NAME}_lib
+    )
+else()
+    target_link_libraries(run_tests
+        PRIVATE
+            gtest
+            gtest_main
             ${PROJECT_NAME}_lib
     )
 endif()

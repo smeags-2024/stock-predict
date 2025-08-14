@@ -60,7 +60,7 @@ We take security vulnerabilities seriously. If you discover a security vulnerabi
 ### Installation Security
 - Always download releases from official sources
 - Verify cryptographic signatures of downloaded packages
-- Use package managers when available (Conan, vcpkg)
+- Use system package managers when available (apt, yum, brew)
 - Keep dependencies updated to latest secure versions
 
 ### Configuration Security

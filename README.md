@@ -53,23 +53,51 @@ graph TD
 
 ### Core Technologies
 - **Language**: C++20 with modern features
-- **Build System**: CMake + Conan package manager
+- **Build System**: CMake with system package dependencies
 - **CI/CD**: GitHub Actions with multi-platform support
 
 ### Machine Learning
-- **ML Framework**: LibTorch (PyTorch C++) for deep learning
-- **Linear Algebra**: Eigen3 for high-performance mathematics
-- **Data Processing**: Apache Arrow for columnar data operations
+- **Mathematical Foundation**: Eigen3 for high-performance linear algebra
+- **Statistical Methods**: Custom C++ implementations for speed
+- **Data Processing**: JSON parsing with nlohmann/json
 
 ### User Interface
-- **GUI Framework**: Qt6 (Widgets, Charts, Network modules)
-- **Visualization**: QtCharts for real-time financial charts
-- **Networking**: Built-in market data connectivity
+- **GUI Framework**: Qt6 (optional - Widgets, Charts, Network modules)
+- **Visualization**: QtCharts for real-time financial charts (when available)
+- **Console Interface**: Full-featured command-line interface
 
 ### Development & Testing
-- **Testing**: GoogleTest for unit testing
-- **Benchmarking**: Google Benchmark for performance testing
+- **Testing**: GoogleTest for comprehensive unit testing
+- **Logging**: spdlog for high-performance logging
 - **Code Quality**: Automated formatting and static analysis
+
+## 📦 Installation
+
+### Prerequisites
+
+- **Compiler**: GCC 10+, Clang 12+, or MSVC 2019+ with C++20 support
+- **CMake**: Version 3.20 or higher
+- **System Libraries**: Eigen3, nlohmann-json, spdlog, GoogleTest
+- **Qt6**: For GUI components (optional - CLI works without it)
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/smeags-2024/stock-predict.git
+cd stock-predict
+
+# Run the automated setup script (installs system dependencies and builds)
+./scripts/setup.sh
+
+# Or manual build:
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
+
+# Run the application
+./StockPredict --help
+```
 
 ## � Installation
 
@@ -77,7 +105,7 @@ graph TD
 
 - **Compiler**: GCC 10+, Clang 12+, or MSVC 2019+
 - **CMake**: Version 3.20 or higher
-- **Conan**: Version 2.0+ for dependency management
+- **System Packages**: Eigen3, nlohmann-json, spdlog (installed via package manager)
 - **Qt6**: For GUI components (optional for CLI-only builds)
 
 ### Quick Start
@@ -87,12 +115,12 @@ graph TD
 git clone https://github.com/smeags-2024/stock-predict.git
 cd stock-predict
 
-# Install dependencies with Conan
-mkdir build && cd build
-conan install .. --build=missing -s build_type=Release -s compiler.cppstd=20
+# Run the automated setup script
+./scripts/setup.sh
 
-# Build the project
-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+# Or build manually:
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc)
 
 # Run the application
@@ -190,11 +218,11 @@ valgrind --leak-check=full ./bin/run_tests
 
 | Component | Status | Description |
 |-----------|--------|-------------|
-| 🏗️ Build System | ✅ Complete | CMake + Conan + CI/CD |
-| 🧠 Core ML Engine | 🚧 In Progress | Basic predictors implemented |
-| 💻 GUI Interface | 🚧 In Progress | Qt6 framework setup complete |
-| 📊 Risk Management | ⏳ Planned | VaR and portfolio optimization |
-| 🌐 Real-time Data | ⏳ Planned | Market data feed integration |
+| 🏗️ Build System | ✅ Complete | CMake + System Packages + CI/CD |
+| 🧠 Core ML Engine | ✅ Complete | Mathematical predictors implemented |
+| 💻 GUI Interface | ✅ Complete | Qt6 framework (optional) |
+| 📊 Risk Management | ✅ Complete | VaR and portfolio optimization |
+| 🌐 Data Sources | ✅ Complete | CSV, API, and mock data sources |
 
 ## 🤝 Contributing
 

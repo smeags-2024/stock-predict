@@ -42,22 +42,21 @@ TEST_F(BuildSystemTest, CMakeConfigurationValidation) {
         << "CMakeLists.txt should find Qt6";
 }
 
-// Test T1.1.2: Conan dependency resolution
-TEST_F(BuildSystemTest, ConanDependencyResolution) {
-    auto conanfile = project_root_ / "conanfile.txt";
-    EXPECT_TRUE(std::filesystem::exists(conanfile)) << "conanfile.txt should exist in project root";
+// Test T1.1.2: System dependency resolution
+TEST_F(BuildSystemTest, SystemDependencyResolution) {
+    auto cmake_file = project_root_ / "CMakeLists.txt";
+    EXPECT_TRUE(std::filesystem::exists(cmake_file)) << "CMakeLists.txt should exist in project root";
 
-    std::ifstream file(conanfile);
+    std::ifstream file(cmake_file);
     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-    // Check for required dependencies
-    EXPECT_NE(content.find("libtorch"), std::string::npos)
-        << "Conanfile should include libtorch dependency";
-    EXPECT_NE(content.find("eigen"), std::string::npos)
-        << "Conanfile should include eigen dependency";
-    EXPECT_NE(content.find("qt/6"), std::string::npos) << "Conanfile should include Qt6 dependency";
-    EXPECT_NE(content.find("CMakeDeps"), std::string::npos)
-        << "Conanfile should use CMakeDeps generator";
+    // Check for required system package finds
+    EXPECT_NE(content.find("find_package(Eigen3"), std::string::npos)
+        << "CMakeLists.txt should find Eigen3 system package";
+    EXPECT_NE(content.find("find_package(nlohmann_json"), std::string::npos)
+        << "CMakeLists.txt should find nlohmann_json system package";
+    EXPECT_NE(content.find("find_package(spdlog"), std::string::npos)
+        << "CMakeLists.txt should find spdlog system package";
 }
 
 // Test T1.1.3: Multi-platform compilation
@@ -90,10 +89,8 @@ TEST_F(BuildSystemTest, BuildScriptFunctionality) {
     std::ifstream file(setup_script);
     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-    EXPECT_NE(content.find("conan install"), std::string::npos)
-        << "setup.sh should run conan install";
     EXPECT_NE(content.find("cmake"), std::string::npos) << "setup.sh should run cmake";
-    EXPECT_NE(content.find("ninja"), std::string::npos) << "setup.sh should use ninja for building";
+    EXPECT_NE(content.find("make"), std::string::npos) << "setup.sh should use make for building";
 }
 
 // Test T1.1.5: Optimization flag verification

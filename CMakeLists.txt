@@ -13,24 +13,39 @@ option(BUILD_DOCS "Build documentation" OFF)
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_BENCHMARKS "Build benchmarks" OFF)
 
-# Find required packages
+# Find required packages - use system packages only
 find_package(PkgConfig REQUIRED)
 
-# Conan integration for Conan 1.x
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake OPTIONAL)
-if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-    conan_basic_setup(TARGETS)
-    message(STATUS "Using Conan dependencies")
-    # Conan 1.x creates targets like CONAN_PKG::eigen, CONAN_PKG::nlohmann_json, etc.
-else()
-    message(STATUS "Conan not found, using system packages")
-    # Fallback to system packages if Conan not available
-    find_package(Eigen3 REQUIRED)
-    find_package(nlohmann_json REQUIRED)
-    find_package(spdlog REQUIRED)
-    find_package(GTest REQUIRED)
+# Core dependencies using system packages
+find_package(Eigen3 REQUIRED)
+find_package(nlohmann_json REQUIRED)
+
+# Try to find spdlog, fallback to header-only if not found
+find_package(spdlog QUIET)
+if(NOT spdlog_FOUND)
+    message(STATUS "spdlog not found as package, will use header-only mode")
+    # We'll include it directly in the project
 endif()
-# find_package(fmt REQUIRED)  # Temporarily disabled for testing
+
+# Try to find fmt, which is required by spdlog
+find_package(fmt QUIET)
+if(NOT fmt_FOUND)
+    message(STATUS "fmt not found as package, will use embedded version")
+endif()
+
+# Testing framework
+if(BUILD_TESTS)
+    find_package(GTest QUIET)
+    if(NOT GTest_FOUND)
+        message(STATUS "GTest not found, will download via FetchContent")
+        include(FetchContent)
+        FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/03597a01ee50a2a94298060058b1db0e9d01de69.zip
+        )
+        FetchContent_MakeAvailable(googletest)
+    endif()
+endif()
 
 # Optional advanced packages (complex dependencies)
 find_package(Torch QUIET)
@@ -149,24 +164,26 @@ else()
     target_include_directories(${PROJECT_NAME}_lib INTERFACE include)
 endif()
 
-# Link libraries
-# Link core libraries - use different targets based on Conan vs system
-if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-    # Conan 1.x target names
-    target_link_libraries(${PROJECT_NAME}_lib
-        PUBLIC
-            CONAN_PKG::eigen
-            CONAN_PKG::nlohmann_json
-            CONAN_PKG::spdlog
-    )
+# Link libraries - use system packages only
+target_link_libraries(${PROJECT_NAME}_lib
+    PUBLIC
+        Eigen3::Eigen
+        nlohmann_json::nlohmann_json
+)
+
+# Link spdlog if found, otherwise we'll use header-only mode
+if(spdlog_FOUND)
+    target_link_libraries(${PROJECT_NAME}_lib PUBLIC spdlog::spdlog)
 else()
-    # System package target names
-    target_link_libraries(${PROJECT_NAME}_lib
-        PUBLIC
-            Eigen3::Eigen
-            nlohmann_json::nlohmann_json
-            spdlog::spdlog
+    # Include spdlog headers directly from system or bundled
+    target_include_directories(${PROJECT_NAME}_lib PUBLIC 
+        /usr/include/spdlog 
+        /usr/local/include/spdlog
     )
+    # Link fmt if available
+    if(fmt_FOUND)
+        target_link_libraries(${PROJECT_NAME}_lib PUBLIC fmt::fmt)
+    endif()
 endif()
 
 # Link optional advanced libraries
@@ -252,9 +269,13 @@ endif()
 install(DIRECTORY include/ DESTINATION include)
 
 # Testing
-if(GTest_FOUND)
+if(BUILD_TESTS)
     enable_testing()
-    add_subdirectory(tests)
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+        add_subdirectory(tests)
+    else()
+        message(STATUS "Tests directory not found, skipping tests")
+    endif()
 endif()
 
 # Benchmarks

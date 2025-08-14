@@ -166,7 +166,6 @@ done
 log_info "Validating essential files..."
 required_files=(
     "../../CMakeLists.txt"
-    "../../conanfile.txt" 
     "../../README.md"
     "../../LICENSE"
     "../../.gitignore"

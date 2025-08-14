@@ -46,6 +46,8 @@ struct PredictorConfig {
     std::string model_type = "lstm";  ///< Model type: lstm, gru, transformer
     int sequence_length = 60;         ///< Input sequence length
     int prediction_horizon = 1;       ///< Number of days to predict
+    int batch_size = 32;              ///< Training batch size
+    double learning_rate = 0.001;     ///< Learning rate for optimization
 
     // Data parameters
     std::vector<std::string> features = {"close", "volume", "rsi", "macd",

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-# Find GTest - try system package first, then fallback to FetchContent
+# Find GTest - try system package first, t    set_target_properties(phase4_tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)   set_target_properties(phase3_tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)   set_target_properties(phase2_tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)en fallback to FetchContent
 find_package(GTest QUIET)
 if(NOT GTest_FOUND)
     message(STATUS "GTest not found as system package, using FetchContent")
@@ -62,7 +62,7 @@ endif()
 
 # Set test properties
 set_target_properties(run_tests PROPERTIES
-    CXX_STANDARD 20
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
 
@@ -78,7 +78,7 @@ if(PHASE1_TESTS)
     else()
         target_link_libraries(phase1_tests PRIVATE gtest gtest_main ${PROJECT_NAME}_lib)
     endif()
-    set_target_properties(phase1_tests PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)
+    set_target_properties(phase1_tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
     gtest_discover_tests(phase1_tests TEST_PREFIX "phase1.")
 endif()
 

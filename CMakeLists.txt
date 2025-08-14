@@ -4,8 +4,8 @@ project(StockPredict VERSION 1.0.0 LANGUAGES CXX)
 # Set policies to avoid warnings
 cmake_policy(SET CMP0146 OLD)  # Allow FindCUDA module
 
-# Set C++20 standard
-set(CMAKE_CXX_STANDARD 20)
+# Set C++17 standard
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Build options
@@ -108,7 +108,7 @@ endif()
 #     LANGUAGES CXX)
 
 # C++ Standard
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -155,7 +155,7 @@ if(SOURCES)
     
     # Target properties
     set_target_properties(${PROJECT_NAME}_lib PROPERTIES
-        CXX_STANDARD 20
+        CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON
         POSITION_INDEPENDENT_CODE ON
     )
@@ -213,7 +213,7 @@ if(Qt6_FOUND)
     add_library(${PROJECT_NAME}_gui ${GUI_SOURCES} ${GUI_HEADERS} ${GUI_RESOURCES})
 
     set_target_properties(${PROJECT_NAME}_gui PROPERTIES
-        CXX_STANDARD 20
+        CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON
         POSITION_INDEPENDENT_CODE ON
     )

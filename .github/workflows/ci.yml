@@ -60,6 +60,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
           -DCMAKE_C_COMPILER=${{ matrix.cc }} \
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+          -DCMAKE_CXX_STANDARD=17 \
           -DBUILD_TESTS=ON \
           -DBUILD_DOCS=OFF \
           -DBUILD_BENCHMARKS=OFF
@@ -128,7 +129,7 @@ jobs:
       run: |
         find src/ include/ -name "*.cpp" -o -name "*.hpp" | \
         xargs clang-tidy -checks='-*,readability-*,performance-*,modernize-*' \
-        -- -std=c++20 -Iinclude -I/usr/include/eigen3 || true
+        -- -std=c++17 -Iinclude -I/usr/include/eigen3 || true
 
     - name: Upload static analysis results
       if: always()
@@ -161,6 +162,7 @@ jobs:
       run: |
         cmake -B build \
           -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_CXX_STANDARD=17 \
           -DBUILD_TESTS=ON
 
     - name: Build project
@@ -235,6 +237,7 @@ jobs:
       run: |
         cmake -B build \
           -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_CXX_STANDARD=17 \
           -DCMAKE_CXX_FLAGS="--coverage" \
           -DCMAKE_C_FLAGS="--coverage" \
           -DBUILD_TESTS=ON

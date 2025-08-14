@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 #include "stock_predictor.hpp"
 
 namespace stock_predict {

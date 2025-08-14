@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-# Find GTest - try system package first, t    set_target_properties(phase4_tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)   set_target_properties(phase3_tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)   set_target_properties(phase2_tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)en fallback to FetchContent
+# Find GTest - try system package first, then fallback to FetchContent
 find_package(GTest QUIET)
 if(NOT GTest_FOUND)
     message(STATUS "GTest not found as system package, using FetchContent")
@@ -89,7 +89,7 @@ if(PHASE2_TESTS)
     else()
         target_link_libraries(phase2_tests PRIVATE gtest gtest_main ${PROJECT_NAME}_lib)
     endif()
-    set_target_properties(phase2_tests PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)
+    set_target_properties(phase2_tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
     gtest_discover_tests(phase2_tests TEST_PREFIX "phase2.")
 endif()
 
@@ -100,7 +100,7 @@ if(PHASE3_TESTS)
     else()
         target_link_libraries(phase3_tests PRIVATE gtest gtest_main ${PROJECT_NAME}_lib)
     endif()
-    set_target_properties(phase3_tests PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)
+    set_target_properties(phase3_tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
     gtest_discover_tests(phase3_tests TEST_PREFIX "phase3.")
 endif()
 
@@ -111,6 +111,6 @@ if(PHASE4_TESTS)
     else()
         target_link_libraries(phase4_tests PRIVATE gtest gtest_main ${PROJECT_NAME}_lib)
     endif()
-    set_target_properties(phase4_tests PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)
+    set_target_properties(phase4_tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
     gtest_discover_tests(phase4_tests TEST_PREFIX "phase4.")
 endif()

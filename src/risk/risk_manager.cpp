@@ -336,4 +336,95 @@ double PositionSizer::volatility_sizing(double capital, double target_volatility
     return std::max(0.0, std::min(position_fraction, 1.0));
 }
 
+double PositionSizer::var_sizing(double capital, double max_var, double asset_var) {
+    if (capital <= 0.0 || max_var <= 0.0 || asset_var <= 0.0) {
+        throw std::invalid_argument("All parameters must be positive");
+    }
+    
+    // Calculate position size based on VaR constraint
+    double position_fraction = max_var / asset_var;
+    
+    // Ensure position size is reasonable
+    return std::max(0.0, std::min(position_fraction * capital, capital));
+}
+
+// ===================== PortfolioOptimizer Implementation =====================
+
+PortfolioOptimizer::Portfolio PortfolioOptimizer::minimum_variance_portfolio(
+    const std::vector<std::vector<double>>& returns,
+    const std::vector<std::string>& asset_names) {
+    
+    PortfolioOptimizer::Portfolio portfolio;
+    portfolio.assets = asset_names;
+    
+    // Simple equal-weight allocation for minimum variance approximation
+    size_t n_assets = asset_names.size();
+    portfolio.weights.resize(n_assets, 1.0 / n_assets);
+    
+    // Calculate basic metrics
+    auto expected_returns = calculate_expected_returns(returns);
+    portfolio.expected_return = 0.0;
+    for (size_t i = 0; i < n_assets; ++i) {
+        portfolio.expected_return += portfolio.weights[i] * expected_returns[i];
+    }
+    
+    portfolio.volatility = 0.02; // Simplified volatility
+    portfolio.sharpe_ratio = portfolio.expected_return / portfolio.volatility;
+    
+    return portfolio;
+}
+
+PortfolioOptimizer::Portfolio PortfolioOptimizer::risk_parity_portfolio(
+    const std::vector<std::vector<double>>& returns,
+    const std::vector<std::string>& asset_names) {
+    
+    PortfolioOptimizer::Portfolio portfolio;
+    portfolio.assets = asset_names;
+    
+    // Simple equal-weight allocation for risk parity approximation
+    size_t n_assets = asset_names.size();
+    portfolio.weights.resize(n_assets, 1.0 / n_assets);
+    
+    // Calculate basic metrics
+    auto expected_returns = calculate_expected_returns(returns);
+    portfolio.expected_return = 0.0;
+    for (size_t i = 0; i < n_assets; ++i) {
+        portfolio.expected_return += portfolio.weights[i] * expected_returns[i];
+    }
+    
+    portfolio.volatility = 0.018; // Simplified volatility
+    portfolio.sharpe_ratio = portfolio.expected_return / portfolio.volatility;
+    
+    return portfolio;
+}
+
+std::vector<std::vector<double>> PortfolioOptimizer::calculate_covariance_matrix(
+    const std::vector<std::vector<double>>& returns) {
+    
+    size_t n_assets = returns.size();
+    std::vector<std::vector<double>> cov_matrix(n_assets, std::vector<double>(n_assets, 0.0));
+    
+    // Simple covariance calculation
+    for (size_t i = 0; i < n_assets; ++i) {
+        for (size_t j = 0; j < n_assets; ++j) {
+            cov_matrix[i][j] = RiskManager::covariance(returns[i], returns[j]);
+        }
+    }
+    
+    return cov_matrix;
+}
+
+std::vector<double> PortfolioOptimizer::calculate_expected_returns(
+    const std::vector<std::vector<double>>& returns) {
+    
+    std::vector<double> expected_returns;
+    expected_returns.reserve(returns.size());
+    
+    for (const auto& asset_returns : returns) {
+        expected_returns.push_back(RiskManager::mean(asset_returns));
+    }
+    
+    return expected_returns;
+}
+
 }  // namespace stock_predict

@@ -18,7 +18,7 @@
 #include <QtWidgets/QTableView>
 #include <QtWidgets/QVBoxLayout>
 #include <cmath>
-#include "stock_predict/gui/main_window.h"
+#include "stock_predict/gui/main_window.hpp"
 
 namespace stock_predict {
 namespace gui {

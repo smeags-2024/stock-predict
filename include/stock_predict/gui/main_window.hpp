@@ -22,6 +22,7 @@
 #include <QSettings>
 #include <QSpinBox>
 #include <QSplitter>
+#include <QStandardItemModel>
 #include <QStatusBar>
 #include <QTabWidget>
 #include <QTableWidget>
@@ -49,6 +50,12 @@ QT_CHARTS_USE_NAMESPACE
 
 class PredictionWorker;
 class RealTimeUpdater;
+
+// Forward declarations for custom widgets
+class PortfolioWidget;
+class RiskWidget;
+class TechnicalAnalysisWidget;
+class ModelConfigurationWidget;
 
 /**
  * @brief Main window for the Stock Prediction GUI application
@@ -292,4 +299,102 @@ class RealTimeUpdater : public QObject {
     QMutex m_mutex;
     bool m_isRunning;
 };
+
+// ============================= Custom Widget Classes =============================
+
+/**
+ * @brief Portfolio management widget
+ */
+class PortfolioWidget : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit PortfolioWidget(QWidget* parent = nullptr);
+    
+public slots:
+    void updatePortfolio();
+    void addPosition(const QString& symbol, int shares, double price);
+    void removePosition(int row);
+
+private slots:
+    void setupUI();
+    void setupConnections();
+    void loadSampleData();
+
+private:
+    QTableWidget* portfolio_table_;
+    QStandardItemModel* portfolio_model_;
+    QLabel* total_value_label_;
+    QLabel* total_return_label_;
+    QLabel* total_risk_label_;
+};
+
+/**
+ * @brief Technical analysis widget
+ */
+class TechnicalAnalysisWidget : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit TechnicalAnalysisWidget(QWidget* parent = nullptr);
+
+private slots:
+    void setupUI();
+    void updateIndicators();
+
+private:
+    QWidget* chart_widget_;
+    QComboBox* indicator_combo_;
+    QSpinBox* period_spinbox_;
+};
+
+/**
+ * @brief Model configuration widget
+ */
+class ModelConfigurationWidget : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit ModelConfigurationWidget(QWidget* parent = nullptr);
+
+private slots:
+    void setupUI();
+    void loadModelConfig();
+    void saveModelConfig();
+
+private:
+    QComboBox* model_type_combo_;
+    QSpinBox* sequence_length_spinbox_;
+    QDoubleSpinBox* learning_rate_spinbox_;
+    QCheckBox* gpu_checkbox_;
+};
+
+/**
+ * @brief Risk analysis widget
+ */
+class RiskWidget : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit RiskWidget(QWidget* parent = nullptr);
+
+private slots:
+    void setupUI();
+    void setupConnections();
+    void loadSampleRiskData();
+    void updateRiskMetrics();
+    void calculateVaR(double confidence_level);
+    void runMonteCarloSimulation(int num_simulations, int time_horizon);
+
+private:
+    QTableWidget* risk_table_;
+    QDoubleSpinBox* confidence_spinbox_;
+    QLabel* var_label_;
+    QLabel* sharpe_label_;
+    QWidget* chart_widget_;
+    QComboBox* time_horizon_combo_;
+    QSpinBox* simulations_spinbox_;
+    QPushButton* calculate_button_;
+};
+
 #endif  // QT_AVAILABLE

@@ -1,16 +1,18 @@
 #pragma once
 
-#ifdef QT_CHARTS_LIB
+#include <QtCore/QMutex>
+#include <QtCore/QThread>
+
+// Only include Qt Charts if available
+#if defined(QT_CHARTS_LIB) && __has_include(<QtCharts/QChart>)
 #include <QtCharts/QCandlestickSeries>
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
 #include <QtCharts/QDateTimeAxis>
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
+#define HAS_QT_CHARTS
 #endif
-
-#include <QtCore/QMutex>
-#include <QtCore/QThread>
 #include <QtCore/QTimer>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QCheckBox>

@@ -63,14 +63,17 @@ find_package(Qt6 QUIET COMPONENTS
     Concurrent
 )
 
-if(Qt6_FOUND)
+# Check if Qt6 Charts is actually available
+if(Qt6_FOUND AND TARGET Qt6::Charts)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
     set(CMAKE_AUTORCC ON)
     add_compile_definitions(QT_CHARTS_LIB)
-    message(STATUS "Qt6 found - GUI will be built")
+    set(QT6_CHARTS_AVAILABLE TRUE)
+    message(STATUS "Qt6 found with Charts - GUI will be built")
 else()
-    message(STATUS "Qt6 not found - GUI will be skipped")
+    set(QT6_CHARTS_AVAILABLE FALSE)
+    message(STATUS "Qt6 or Qt6::Charts not found - GUI will be skipped")
 endif()
 
 # Optional packages for development
@@ -208,8 +211,8 @@ if(cpprest_FOUND)
     target_link_libraries(${PROJECT_NAME}_lib PUBLIC cpprest::cpprest)
 endif()
 
-# Create GUI library (if Qt6 is available)
-if(Qt6_FOUND)
+# Create GUI library (if Qt6 Charts is available)
+if(QT6_CHARTS_AVAILABLE)
     add_library(${PROJECT_NAME}_gui ${GUI_SOURCES} ${GUI_HEADERS} ${GUI_RESOURCES})
 
     set_target_properties(${PROJECT_NAME}_gui PROPERTIES
@@ -230,7 +233,7 @@ if(Qt6_FOUND)
 else()
     # Create dummy GUI library for compatibility
     add_library(${PROJECT_NAME}_gui INTERFACE)
-    message(STATUS "Creating dummy GUI library - Qt6 not available")
+    message(STATUS "Creating dummy GUI library - Qt6 Charts not available")
 endif()
 
 # CUDA support
@@ -244,8 +247,8 @@ endif()
 add_executable(${PROJECT_NAME} src/main.cpp)
 target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib)
 
-# GUI executable (only if Qt6 is available)
-if(Qt6_FOUND)
+# GUI executable (only if Qt6 Charts is available)
+if(QT6_CHARTS_AVAILABLE)
     add_executable(${PROJECT_NAME}_gui_app src/gui/gui_main.cpp)
     target_link_libraries(${PROJECT_NAME}_gui_app ${PROJECT_NAME}_gui ${PROJECT_NAME}_lib)
     # Set executable names
@@ -259,7 +262,7 @@ install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_lib
     ARCHIVE DESTINATION lib
 )
 
-if(Qt6_FOUND)
+if(QT6_CHARTS_AVAILABLE)
     install(TARGETS ${PROJECT_NAME}_gui_app ${PROJECT_NAME}_gui
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib

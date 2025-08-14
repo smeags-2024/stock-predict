@@ -267,18 +267,9 @@ std::vector<std::vector<double>> FeatureEngineer::extract_features(
 
     return features;
 }
-        if (i < sma20.size()) feature_row.push_back(sma20[i]);
-        if (i < ema12.size()) feature_row.push_back(ema12[i]);
-        if (i < rsi.size()) feature_row.push_back(rsi[i]);
-
-        features.push_back(feature_row);
-    }
-
-    return features;
-}
 
 std::pair<std::vector<std::vector<double>>, std::pair<std::vector<double>, std::vector<double>>>
-FeatureEngineer::normalize_features(const std::vector<std::vector<double>>& features) {
+stock_predict::FeatureEngineer::normalize_features(const std::vector<std::vector<double>>& features) {
     std::vector<std::vector<double>> normalized;
     std::vector<double> means, stds;
     

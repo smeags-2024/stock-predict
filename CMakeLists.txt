@@ -133,13 +133,18 @@ find_package(benchmark QUIET)
 include_directories(include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 
-# Source files
+# Source files - exclude GUI sources from main library
 file(GLOB_RECURSE SOURCES "src/core/*.cpp" "src/features/*.cpp" "src/risk/*.cpp" "src/data/*.cpp")
 file(GLOB_RECURSE HEADERS "include/*.hpp" "include/*.h")
 
-# GUI source files
+# Exclude GUI headers from main library to avoid Qt dependency issues
+file(GLOB_RECURSE GUI_HEADERS "include/stock_predict/gui/*.h" "include/stock_predict/gui/*.hpp")
+if(GUI_HEADERS)
+    list(REMOVE_ITEM HEADERS ${GUI_HEADERS})
+endif()
+
+# GUI source files (only compile if Qt6 Charts available)
 file(GLOB_RECURSE GUI_SOURCES "src/gui/*.cpp")
-file(GLOB_RECURSE GUI_HEADERS "include/stock_predict/gui/*.h")
 
 # Qt resource files (only if Qt6 found)
 if(Qt6_FOUND)

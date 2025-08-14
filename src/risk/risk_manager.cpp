@@ -224,6 +224,7 @@ double RiskManager::covariance(const std::vector<double>& x, const std::vector<d
 PortfolioOptimizer::Portfolio PortfolioOptimizer::optimize_portfolio(
     const std::vector<std::vector<double>>& returns, const std::vector<std::string>& asset_names,
     double risk_free_rate, std::optional<double> target_return) {
+    (void)risk_free_rate; (void)target_return;  // Suppress unused warnings
     PortfolioOptimizer::Portfolio portfolio;
     portfolio.assets = asset_names;
 
@@ -278,6 +279,61 @@ std::vector<PortfolioOptimizer::Portfolio> PortfolioOptimizer::efficient_frontie
     }
 
     return frontier;
+}
+
+// ===================== PositionSizer Implementation =====================
+
+double PositionSizer::kelly_criterion(double win_rate, double avg_win, double avg_loss) {
+    if (avg_loss <= 0 || win_rate <= 0 || win_rate >= 1) {
+        return 0.0;  // Invalid parameters
+    }
+    
+    // Kelly formula: f = (bp - q) / b
+    // where b = avg_win/avg_loss, p = win_rate, q = 1 - win_rate
+    double b = avg_win / avg_loss;
+    double p = win_rate;
+    double q = 1.0 - win_rate;
+    
+    double kelly_fraction = (b * p - q) / b;
+    
+    // Cap at reasonable maximum (e.g., 25% of capital)
+    return std::max(0.0, std::min(kelly_fraction, 0.25));
+}
+
+double PositionSizer::fixed_fractional(double capital, double risk_fraction, 
+                                       double entry_price, double stop_loss) {
+    if (capital <= 0 || risk_fraction <= 0 || entry_price <= 0 || stop_loss <= 0) {
+        return 0.0;  // Invalid parameters
+    }
+    
+    // Calculate risk per share
+    double risk_per_share = std::abs(entry_price - stop_loss);
+    if (risk_per_share <= 0) {
+        return 0.0;
+    }
+    
+    // Calculate total risk amount
+    double total_risk = capital * risk_fraction;
+    
+    // Calculate position size (number of shares)
+    double position_size = total_risk / risk_per_share;
+    
+    // Ensure we don't exceed available capital
+    double max_shares = capital / entry_price;
+    return std::min(position_size, max_shares);
+}
+
+double PositionSizer::volatility_sizing(double capital, double target_volatility, 
+                                        double asset_volatility) {
+    if (capital <= 0 || target_volatility <= 0 || asset_volatility <= 0) {
+        return 0.0;  // Invalid parameters
+    }
+    
+    // Position size as fraction of capital based on volatility targeting
+    double position_fraction = target_volatility / asset_volatility;
+    
+    // Cap at reasonable maximum (e.g., 100% of capital)
+    return std::max(0.0, std::min(position_fraction, 1.0));
 }
 
 }  // namespace stock_predict

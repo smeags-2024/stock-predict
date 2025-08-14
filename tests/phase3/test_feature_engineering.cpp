@@ -8,36 +8,24 @@
 #include <vector>
 
 // Include data structures and market analysis components
-#include "../../src/core/data_structures.h"
-#include "../../src/core/market_analyzer.h"
-#include "../../src/feature_engineering/feature_extractor.h"
-#include "../../src/feature_engineering/technical_indicators.h"
+#include "stock_predict/data.hpp"
+#include "stock_predict/features.hpp"
 
 class Phase3FeatureEngineering : public ::testing::Test {
    protected:
     void SetUp() override {
         // Generate sample stock data for testing
         generateSampleData();
-
-        // Initialize feature extractor
-        feature_extractor = std::make_unique<FeatureExtractor>();
-
-        // Initialize technical indicators
-        technical_indicators = std::make_unique<TechnicalIndicators>();
-
-        // Initialize market analyzer
-        market_analyzer = std::make_unique<MarketAnalyzer>();
     }
 
     void TearDown() override {
         // Cleanup test data
-        sample_data.clear();
-        features.clear();
+        sample_data_.clear();
     }
 
     void generateSampleData() {
         // Generate 252 days of sample data (1 trading year)
-        sample_data.clear();
+        sample_data_.clear();
         std::random_device rd;
         std::mt19937 gen(rd());
         std::normal_distribution<double> price_change(-0.001, 0.02);
@@ -47,6 +35,28 @@ class Phase3FeatureEngineering : public ::testing::Test {
         uint64_t base_volume = 1000000;
 
         auto start_time = std::chrono::system_clock::now() - std::chrono::hours(24 * 252);
+
+        for (int i = 0; i < 252; ++i) {
+            stock_predict::MarketData data;
+            data.symbol = "TEST";
+            data.timestamp = start_time + std::chrono::hours(24 * i);
+            
+            double price_mult = 1.0 + price_change(gen);
+            base_price *= price_mult;
+            
+            data.open = base_price;
+            data.high = base_price * (1.0 + std::abs(price_change(gen)) * 0.5);
+            data.low = base_price * (1.0 - std::abs(price_change(gen)) * 0.5);
+            data.close = base_price * price_mult;
+            data.volume = static_cast<uint64_t>(base_volume * volume_factor(gen));
+            data.adjusted_close = data.close;
+
+            sample_data_.push_back(data);
+        }
+    }
+
+    std::vector<stock_predict::MarketData> sample_data_;
+};
 
         for (int i = 0; i < 252; ++i) {
             StockData data;

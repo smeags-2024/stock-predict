@@ -36,8 +36,10 @@ TEST_F(BuildSystemTest, CMakeConfigurationValidation) {
         << "CMakeLists.txt should define project name";
     EXPECT_NE(content.find("CMAKE_CXX_STANDARD"), std::string::npos)
         << "CMakeLists.txt should set C++ standard";
-    EXPECT_NE(content.find("find_package(Torch"), std::string::npos)
-        << "CMakeLists.txt should find PyTorch";
+    EXPECT_NE(content.find("find_package(Eigen3"), std::string::npos)
+        << "CMakeLists.txt should find Eigen3";
+    EXPECT_NE(content.find("find_package(nlohmann_json"), std::string::npos)
+        << "CMakeLists.txt should find nlohmann_json";
     EXPECT_NE(content.find("find_package(Qt6"), std::string::npos)
         << "CMakeLists.txt should find Qt6";
 }

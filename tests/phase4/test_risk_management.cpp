@@ -7,47 +7,59 @@
 #include <vector>
 
 // Include risk management components
-#include "../../src/core/data_structures.h"
-#include "../../src/risk_management/portfolio_manager.h"
-#include "../../src/risk_management/position_sizer.h"
-#include "../../src/risk_management/risk_calculator.h"
-#include "../../src/risk_management/stop_loss_manager.h"
+#include "stock_predict/data.hpp"
+#include "stock_predict/risk.hpp"
 
 class Phase4RiskManagement : public ::testing::Test {
    protected:
     void SetUp() override {
-        // Initialize risk management components
-        risk_calculator = std::make_unique<RiskCalculator>();
-        portfolio_manager = std::make_unique<PortfolioManager>(initial_capital);
-        position_sizer = std::make_unique<PositionSizer>();
-        stop_loss_manager = std::make_unique<StopLossManager>();
-
+        initial_capital_ = 100000.0;
+        
         // Generate sample portfolio and positions
-        generateSamplePortfolio();
-        generateSamplePositions();
+        generateSampleData();
     }
 
     void TearDown() override {
-        sample_portfolio.clear();
-        sample_positions.clear();
-        market_data.clear();
+        sample_data_.clear();
+        sample_returns_.clear();
     }
 
-    void generateSamplePortfolio() {
-        sample_portfolio.clear();
+    void generateSampleData() {
+        // Generate sample market data for risk calculations
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::normal_distribution<double> returns_dist(0.001, 0.02);
 
-        // Create diverse portfolio with different asset types
-        std::vector<std::string> symbols = {"AAPL", "GOOGL", "MSFT", "TSLA", "AMZN",
-                                            "NVDA", "META",  "NFLX", "SPY",  "QQQ"};
-        std::vector<double> weights = {0.15, 0.12, 0.10, 0.08, 0.10, 0.12, 0.08, 0.05, 0.10, 0.10};
+        // Generate returns data
+        for (int i = 0; i < 252; ++i) {
+            sample_returns_.push_back(returns_dist(gen));
+        }
 
-        for (size_t i = 0; i < symbols.size(); ++i) {
-            PortfolioPosition position;
-            position.symbol = symbols[i];
-            position.shares = static_cast<int>((initial_capital * weights[i]) /
-                                               (100.0 + i * 10));  // Varying share prices
-            position.avg_cost = 100.0 + i * 10;
-            position.current_price =
+        // Generate price data
+        double price = 100.0;
+        auto start_time = std::chrono::system_clock::now() - std::chrono::hours(24 * 252);
+
+        for (int i = 0; i < 252; ++i) {
+            stock_predict::MarketData data;
+            data.symbol = "TEST";
+            data.timestamp = start_time + std::chrono::hours(24 * i);
+            
+            price *= (1.0 + sample_returns_[i]);
+            data.open = price;
+            data.high = price * 1.02;
+            data.low = price * 0.98;
+            data.close = price;
+            data.volume = 1000000;
+            data.adjusted_close = price;
+
+            sample_data_.push_back(data);
+        }
+    }
+
+    double initial_capital_;
+    std::vector<stock_predict::MarketData> sample_data_;
+    std::vector<double> sample_returns_;
+};
                 position.avg_cost * (0.95 + (i % 3) * 0.05);  // Some gains/losses
             position.market_value = position.shares * position.current_price;
             position.unrealized_pnl = position.market_value - (position.shares * position.avg_cost);

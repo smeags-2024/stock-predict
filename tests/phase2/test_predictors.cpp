@@ -2,7 +2,7 @@
 #include <memory>
 #include "stock_predict/data.hpp"
 #include "stock_predict/models.hpp"
-#include "stock_predict/predictor.hpp"
+#include "stock_predict/stock_predictor.hpp"
 
 // Phase 2: Core Prediction Engine Tests
 // Test T2.1.1-T2.4.5: Core Prediction Engine Tests

@@ -1,0 +1,262 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        compiler: [gcc-11, clang-14]
+        include:
+          - compiler: gcc-11
+            cc: gcc-11
+            cxx: g++-11
+          - compiler: clang-14
+            cc: clang-14
+            cxx: clang++-14
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          pkg-config \
+          libeigen3-dev \
+          nlohmann-json3-dev \
+          libspdlog-dev \
+          libfmt-dev \
+          libgtest-dev \
+          qt6-base-dev \
+          qt6-charts-dev \
+          libgl1-mesa-dev \
+          ${{ matrix.cc }} \
+          ${{ matrix.cxx }}
+
+    - name: Set up compiler
+      run: |
+        echo "CC=${{ matrix.cc }}" >> $GITHUB_ENV
+        echo "CXX=${{ matrix.cxx }}" >> $GITHUB_ENV
+
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+          -DBUILD_TESTS=ON \
+          -DBUILD_DOCS=OFF \
+          -DBUILD_BENCHMARKS=OFF
+
+    - name: Build project
+      run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+    - name: Run Phase 1 tests (Build System)
+      run: |
+        cd build
+        ctest -R "phase1" --output-on-failure
+
+    - name: Run Phase 2 tests (Core Components)
+      run: |
+        cd build
+        ctest -R "phase2" --output-on-failure
+
+    - name: Run Phase 3 tests (Integration)
+      run: |
+        cd build
+        ctest -R "phase3" --output-on-failure
+
+    - name: Run Phase 4 tests (Risk Management)
+      run: |
+        cd build
+        ctest -R "phase4" --output-on-failure
+
+    - name: Run all tests
+      run: |
+        cd build
+        ctest --output-on-failure
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.compiler }}
+        path: |
+          build/Testing/
+          build/test_*.xml
+
+  static-analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          clang-tools \
+          cppcheck \
+          libeigen3-dev \
+          nlohmann-json3-dev
+
+    - name: Run cppcheck
+      run: |
+        cppcheck --enable=all --inconclusive --xml --xml-version=2 \
+          --suppress=missingIncludeSystem \
+          --suppress=unusedFunction \
+          src/ include/ 2> cppcheck-result.xml || true
+
+    - name: Run clang-tidy
+      run: |
+        find src/ include/ -name "*.cpp" -o -name "*.hpp" | \
+        xargs clang-tidy -checks='-*,readability-*,performance-*,modernize-*' \
+        -- -std=c++20 -Iinclude -I/usr/include/eigen3 || true
+
+    - name: Upload static analysis results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: static-analysis-results
+        path: |
+          cppcheck-result.xml
+
+  memory-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          valgrind \
+          libeigen3-dev \
+          nlohmann-json3-dev \
+          libspdlog-dev \
+          libgtest-dev
+
+    - name: Configure CMake for Debug
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DBUILD_TESTS=ON
+
+    - name: Build project
+      run: cmake --build build --config Debug
+
+    - name: Run tests with Valgrind
+      run: |
+        cd build
+        ctest -T memcheck --output-on-failure || true
+
+    - name: Upload memory check results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: memory-check-results
+        path: |
+          build/Testing/
+
+  documentation:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          doxygen \
+          graphviz \
+          libeigen3-dev
+
+    - name: Generate documentation
+      run: |
+        if [ -f "Doxyfile" ]; then
+          doxygen Doxyfile
+        else
+          echo "No Doxyfile found, skipping documentation generation"
+        fi
+
+    - name: Deploy documentation
+      if: success() && github.ref == 'refs/heads/master'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/html
+        force_orphan: true
+
+  code-coverage:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          gcov \
+          lcov \
+          libeigen3-dev \
+          nlohmann-json3-dev \
+          libspdlog-dev \
+          libgtest-dev
+
+    - name: Configure CMake with coverage
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_CXX_FLAGS="--coverage" \
+          -DCMAKE_C_FLAGS="--coverage" \
+          -DBUILD_TESTS=ON
+
+    - name: Build project
+      run: cmake --build build --config Debug
+
+    - name: Run tests
+      run: |
+        cd build
+        ctest --output-on-failure
+
+    - name: Generate coverage report
+      run: |
+        lcov --directory build --capture --output-file coverage.info
+        lcov --remove coverage.info '/usr/*' --output-file coverage.info
+        lcov --remove coverage.info '*/tests/*' --output-file coverage.info
+        lcov --remove coverage.info '*/third_party/*' --output-file coverage.info
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false

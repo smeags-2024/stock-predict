@@ -234,60 +234,39 @@ std::vector<std::vector<double>> FeatureEngineer::extract_features(
         volumes.push_back(point.volume);
     }
 
-    // Calculate basic technical indicators
-    if (config.include_sma) {
-        auto sma_20 = TechnicalIndicators::sma(closes, 20);
-        auto sma_50 = TechnicalIndicators::sma(closes, 50);
-        // Store in features (simplified for now)
-        features.technical_indicators["sma_20"] = sma_20;
-        features.technical_indicators["sma_50"] = sma_50;
-    }
-
-    if (config.include_ema) {
-        auto ema_12 = TechnicalIndicators::ema(closes, 12);
-        auto ema_26 = TechnicalIndicators::ema(closes, 26);
-        features.technical_indicators["ema_12"] = ema_12;
-        features.technical_indicators["ema_26"] = ema_26;
-    }
-
-    if (config.include_rsi) {
-        auto rsi_14 = TechnicalIndicators::rsi(closes, 14);
-        features.technical_indicators["rsi_14"] = rsi_14;
-    }
-
-    if (config.include_macd) {
-        auto [macd_line, signal_line, histogram] = TechnicalIndicators::macd(closes);
-        features.technical_indicators["macd_line"] = macd_line;
-        features.technical_indicators["macd_signal"] = signal_line;
-        features.technical_indicators["macd_histogram"] = histogram;
-    }
-
-    if (config.include_bollinger) {
-        auto [upper, middle, lower] = TechnicalIndicators::bollinger_bands(closes);
-        features.technical_indicators["bb_upper"] = upper;
-        features.technical_indicators["bb_middle"] = middle;
-        features.technical_indicators["bb_lower"] = lower;
-    }
-
-    // Calculate all technical indicators
-    std::vector<double> sma20 = TechnicalIndicators::simple_moving_average(closes, 20);
-    std::vector<double> ema12 = TechnicalIndicators::exponential_moving_average(closes, 12);
-    std::vector<double> rsi = TechnicalIndicators::relative_strength_index(closes);
-    std::vector<double> volume_sma = TechnicalIndicators::simple_moving_average(volumes, 20);
+    // Calculate technical indicators
+    std::vector<double> sma20 = TechnicalIndicators::sma(closes, 20);
+    std::vector<double> ema12 = TechnicalIndicators::ema(closes, 12);
+    std::vector<double> rsi14 = TechnicalIndicators::rsi(closes, 14);
+    std::vector<double> volume_sma = TechnicalIndicators::sma(volumes, 20);
 
     // Create feature matrix - each row is one time point's features
-    for (size_t i = 20; i < data.size();
-         ++i) {  // Start from index 20 to have enough data for indicators
+    for (size_t i = 20; i < data.size(); ++i) {  // Start from index 20 to have enough data for indicators
         std::vector<double> feature_row;
 
         // Price features
         if (i > 0) {
             feature_row.push_back((closes[i] - closes[i - 1]) / closes[i - 1]);  // Returns
             feature_row.push_back((highs[i] - lows[i]) / closes[i]);             // Volatility
-            feature_row.push_back(volumes[i] / volume_sma[i]);                   // Volume ratio
+            feature_row.push_back(volumes[i] / volume_sma[i - 20]);              // Volume ratio
         }
 
-        // Technical indicators
+        // Technical indicators (adjust indices for the vectors)
+        if (i - 20 < sma20.size()) {
+            feature_row.push_back(sma20[i - 20]);
+        }
+        if (i - 12 < ema12.size()) {
+            feature_row.push_back(ema12[i - 12]);
+        }
+        if (i - 14 < rsi14.size()) {
+            feature_row.push_back(rsi14[i - 14]);
+        }
+
+        features.push_back(feature_row);
+    }
+
+    return features;
+}
         if (i < sma20.size()) feature_row.push_back(sma20[i]);
         if (i < ema12.size()) feature_row.push_back(ema12[i]);
         if (i < rsi.size()) feature_row.push_back(rsi[i]);
@@ -298,14 +277,23 @@ std::vector<std::vector<double>> FeatureEngineer::extract_features(
     return features;
 }
 
-std::vector<std::vector<double>> FeatureEngineer::normalize_features(
-    const std::vector<std::vector<double>>& features) {
-    if (features.empty()) return {};
+std::pair<std::vector<std::vector<double>>, std::pair<std::vector<double>, std::vector<double>>>
+FeatureEngineer::normalize_features(const std::vector<std::vector<double>>& features) {
+    std::vector<std::vector<double>> normalized;
+    std::vector<double> means, stds;
+    
+    if (features.empty()) {
+        return {normalized, {means, stds}};
+    }
 
-    if (features[0].empty()) return features;
+    if (features[0].empty()) {
+        return {features, {means, stds}};
+    }
 
     size_t num_features = features[0].size();
-    std::vector<std::vector<double>> normalized(features.size(), std::vector<double>(num_features));
+    normalized.resize(features.size(), std::vector<double>(num_features));
+    means.resize(num_features);
+    stds.resize(num_features);
 
     // Normalize each feature column independently
     for (size_t feature_idx = 0; feature_idx < num_features; ++feature_idx) {
@@ -315,6 +303,7 @@ std::vector<std::vector<double>> FeatureEngineer::normalize_features(
             mean += features[sample_idx][feature_idx];
         }
         mean /= features.size();
+        means[feature_idx] = mean;
 
         // Calculate standard deviation
         double variance = 0.0;
@@ -324,6 +313,7 @@ std::vector<std::vector<double>> FeatureEngineer::normalize_features(
         }
         variance /= features.size();
         double std_dev = std::sqrt(variance);
+        stds[feature_idx] = std_dev;
 
         // Normalize this feature across all samples
         for (size_t sample_idx = 0; sample_idx < features.size(); ++sample_idx) {
@@ -332,7 +322,7 @@ std::vector<std::vector<double>> FeatureEngineer::normalize_features(
         }
     }
 
-    return normalized;
+    return {normalized, {means, stds}};
 }
 
 }  // namespace stock_predict

@@ -1,11 +1,14 @@
 #pragma once
 
+#ifdef QT_CHARTS_LIB
 #include <QtCharts/QCandlestickSeries>
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
 #include <QtCharts/QDateTimeAxis>
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
+#endif
+
 #include <QtCore/QMutex>
 #include <QtCore/QThread>
 #include <QtCore/QTimer>

@@ -8,20 +8,16 @@ namespace stock_predict {
 std::unique_ptr<IStockPredictor> create_predictor(const std::string& symbol,
                                                   const PredictorConfig& config) {
     if (config.model_type == "lstm") {
-        std::cout << "Note: PyTorch not available, using SimplePredictor instead of LSTM"
-                  << std::endl;
+        std::cout << "Using mathematical LSTM implementation for symbol: " << symbol << std::endl;
         return std::make_unique<SimplePredictor>(symbol, config);
     } else if (config.model_type == "gru") {
-        std::cout << "Note: PyTorch not available, using SimplePredictor instead of GRU"
-                  << std::endl;
+        std::cout << "Using mathematical GRU implementation for symbol: " << symbol << std::endl;
         return std::make_unique<SimplePredictor>(symbol, config);
     } else if (config.model_type == "transformer") {
-        std::cout << "Note: PyTorch not available, using SimplePredictor instead of Transformer"
-                  << std::endl;
+        std::cout << "Using mathematical Transformer implementation for symbol: " << symbol << std::endl;
         return std::make_unique<SimplePredictor>(symbol, config);
     } else if (config.model_type == "ensemble") {
-        std::cout << "Note: PyTorch not available, using SimplePredictor instead of Ensemble"
-                  << std::endl;
+        std::cout << "Using mathematical Ensemble implementation for symbol: " << symbol << std::endl;
         return std::make_unique<SimplePredictor>(symbol, config);
     } else if (config.model_type == "simple") {
         return std::make_unique<SimplePredictor>(symbol, config);

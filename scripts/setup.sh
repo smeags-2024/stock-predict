@@ -224,7 +224,7 @@ build_project() {
     
     # Configure with CMake
     log_info "Configuring with CMake..."
-    cmake "${CMAKE_OPTIONS[@]}" ..
+    cmake "${CMAKE_OPTIONS[@]}" "$PROJECT_ROOT"
     
     # Build
     log_info "Building with $JOBS parallel jobs..."

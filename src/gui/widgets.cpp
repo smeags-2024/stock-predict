@@ -663,7 +663,7 @@ void AboutDialog::setupUI() {
     auto* tech_layout = new QVBoxLayout(tech_group);
 
     tech_layout->addWidget(new QLabel("• Built with C++20 and Qt6"));
-    tech_layout->addWidget(new QLabel("• PyTorch C++ backend for deep learning"));
+    tech_layout->addWidget(new QLabel("• Pure C++ mathematical implementations"));
     tech_layout->addWidget(new QLabel("• Eigen3 for mathematical computations"));
     tech_layout->addWidget(new QLabel("• HDF5 for efficient data storage"));
     tech_layout->addWidget(new QLabel("• Qt Charts for visualization"));
